@@ -61,7 +61,7 @@ class MCPToolHelper:
         }
         
         response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=init_request,
             headers={
                 "Content-Type": "application/json",
@@ -85,7 +85,7 @@ class MCPToolHelper:
         }
         
         notify_response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=initialized_request,
             headers={
                 "Content-Type": "application/json",
@@ -116,7 +116,7 @@ class MCPToolHelper:
         }
         
         response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=request,
             headers={
                 "Content-Type": "application/json",

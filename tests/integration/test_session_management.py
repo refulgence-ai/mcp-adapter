@@ -58,7 +58,7 @@ class SessionTestHelper:
             }
             
             response = await client.post(
-                f"{self.base_url}/mcp/",
+                f"{self.base_url}/mcp",
                 json=init_request,
                 headers={
                     "Content-Type": "application/json",
@@ -98,7 +98,7 @@ class SessionTestHelper:
                 headers["Mcp-Session-Id"] = session_info["session_id"]
             
             response = await client.post(
-                f"{self.base_url}/mcp/",
+                f"{self.base_url}/mcp",
                 json=request,
                 headers=headers
             )
@@ -128,7 +128,7 @@ class SessionTestHelper:
                         headers["Mcp-Session-Id"] = session_info["session_id"]
                     
                     await client.post(
-                        f"{self.base_url}/mcp/",
+                        f"{self.base_url}/mcp",
                         json=request,
                         headers=headers,
                         timeout=5.0
@@ -511,7 +511,7 @@ class TestSessionEdgeCases:
                 
                 try:
                     response = await client.post(
-                        f"{GATEWAY_URL}/mcp/",
+                        f"{GATEWAY_URL}/mcp",
                         json=request_data,
                         headers=headers,
                         timeout=10.0

@@ -201,7 +201,7 @@ class TestBackendFailureScenarios:
                         try:
                             # Direct test of LaTeX server (would go through gateway in real use)
                             latex_response = await client.post(
-                                f"{LATEX_SERVER_URL}/mcp/",
+                                f"{LATEX_SERVER_URL}/mcp",
                                 json={
                                     "jsonrpc": "2.0",
                                     "id": f"timeout-test-{i}",

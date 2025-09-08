@@ -49,7 +49,7 @@ class MCPSession:
         }
         
         response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=init_request,
             headers={
                 "Content-Type": "application/json",
@@ -76,7 +76,7 @@ class MCPSession:
         }
         
         notify_response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=initialized_request,
             headers={
                 "Content-Type": "application/json",
@@ -112,7 +112,7 @@ class MCPSession:
         }
         
         response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=tool_request,
             headers={
                 "Content-Type": "application/json",
@@ -139,7 +139,7 @@ class MCPSession:
         }
         
         response = await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=tools_request,
             headers={
                 "Content-Type": "application/json",
@@ -172,7 +172,7 @@ class MCPSession:
         }
         
         return await self.client.post(
-            f"{self.base_url}/mcp/",
+            f"{self.base_url}/mcp",
             json=request_data,
             headers={
                 "Content-Type": "application/json",

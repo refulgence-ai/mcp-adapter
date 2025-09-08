@@ -309,7 +309,7 @@ class TestLatexSecurityValidation:
                         # This is a direct HTTP test of LaTeX server
                         # In real MCP, this would go through the gateway
                         latex_response = await client.post(
-                            f"{LATEX_SERVER_URL}/mcp/",
+                            f"{LATEX_SERVER_URL}/mcp",
                             json={
                                 "jsonrpc": "2.0",
                                 "id": "security-test",
@@ -367,7 +367,7 @@ class TestLatexSecurityValidation:
                     # Attempt compilation
                     try:
                         latex_response = await client.post(
-                            f"{LATEX_SERVER_URL}/mcp/",
+                            f"{LATEX_SERVER_URL}/mcp",
                             json={
                                 "jsonrpc": "2.0",
                                 "id": "inclusion-test",
@@ -422,7 +422,7 @@ class TestLatexSecurityValidation:
                     # Test validation first
                     try:
                         validation_response = await client.post(
-                            f"{LATEX_SERVER_URL}/mcp/",
+                            f"{LATEX_SERVER_URL}/mcp",
                             json={
                                 "jsonrpc": "2.0",
                                 "id": "validation-test",
@@ -489,7 +489,7 @@ class TestLatexSecurityValidation:
                     # Attempt compilation with timeout
                     try:
                         latex_response = await client.post(
-                            f"{LATEX_SERVER_URL}/mcp/",
+                            f"{LATEX_SERVER_URL}/mcp",
                             json={
                                 "jsonrpc": "2.0",
                                 "id": "resource-test",
@@ -742,7 +742,7 @@ class TestErrorHandlingAndLogging:
             # Try to trigger various error conditions
             ("Invalid JSON", f"{GATEWAY_URL}/oauth/register", "invalid json"),
             ("Missing file", f"{FILE_SERVER_URL}/files/nonexistent-file-id", None),
-            ("Invalid LaTeX", f"{LATEX_SERVER_URL}/mcp/", {"method": "invalid"}),
+            ("Invalid LaTeX", f"{LATEX_SERVER_URL}/mcp", {"method": "invalid"}),
         ]
         
         for test_name, url, data in malicious_requests:

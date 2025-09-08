@@ -118,7 +118,7 @@ async def call_backend_tool_direct(server_url: str, tool_name: str, arguments: d
         }
         
         response = await client.post(
-            f"{server_url}/mcp/",
+            f"{server_url}/mcp",
             json=mcp_request,
             headers={
                 "Content-Type": "application/json",
@@ -331,7 +331,7 @@ class SessionPool:
             }
             
             response = await client.post(
-                f"{self.server_url}/mcp/",
+                f"{self.server_url}/mcp",
                 json=init_request,
                 headers={
                     "Content-Type": "application/json",
@@ -356,7 +356,7 @@ class SessionPool:
             }
             
             await client.post(
-                f"{self.server_url}/mcp/",
+                f"{self.server_url}/mcp",
                 json=initialized_request,
                 headers={
                     "Content-Type": "application/json",
@@ -516,7 +516,7 @@ async def call_backend_tool(tool_name: str, arguments: dict) -> str:
         }
         
         response = await client.post(
-            f"{server_url}/mcp/",
+            f"{server_url}/mcp",
             json=mcp_request,
             headers={
                 "Content-Type": "application/json",
@@ -596,9 +596,9 @@ async def root_handler(request):
             return create_auth_error_response("Valid OAuth token required for MCP access")
         
         # Forward authenticated MCP requests to the built-in MCP handler
-        # Claude Code expects MCP at root, but FastMCP serves at /mcp/
+        # Claude Code expects MCP at root, but FastMCP serves at /mcp
         try:
-            # Use httpx to forward to the /mcp/ endpoint on the same server
+            # Use httpx to forward to the /mcp endpoint on the same server
             import httpx
             
             # Get the request body and headers
@@ -609,10 +609,10 @@ async def root_handler(request):
             if 'host' in headers:
                 del headers['host']
             
-            # Forward to /mcp/ endpoint
+            # Forward to /mcp endpoint
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    "http://127.0.0.1:8000/mcp/",
+                    "http://127.0.0.1:8000/mcp",
                     content=body,
                     headers=headers,
                     timeout=30.0
@@ -634,7 +634,7 @@ async def root_handler(request):
                 "error": {"code": -32603, "message": f"Internal error: {str(e)}"}
             })
 
-# FastMCP creates /mcp/ automatically - we can't easily override it
+# FastMCP creates /mcp automatically - we can't easily override it
 # Main security is at root endpoint (/) which is properly protected
 # Document this architectural decision for production deployment
 
@@ -1092,5 +1092,5 @@ if __name__ == "__main__":
     logger.info(f"Starting MCP Adapter on port {port}")
     logger.info(f"Debug mode: {debug}")
     
-    # Run the MCP server (will serve MCP at /mcp/ and dashboard at /)
+    # Run the MCP server (will serve MCP at /mcp and dashboard at /)
     mcp.run(transport="http", host="0.0.0.0", port=port)

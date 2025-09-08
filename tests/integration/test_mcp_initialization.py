@@ -28,7 +28,7 @@ async def test_mcp_initialization():
         }
         
         response = await client.post(
-            "http://localhost:8001/mcp/",
+            "http://localhost:8001/mcp",
             json=initialize_request,
             headers={
                 "Content-Type": "application/json",
@@ -61,7 +61,7 @@ async def test_mcp_initialization():
             }
             
             response = await client.post(
-                "http://localhost:8001/mcp/",
+                "http://localhost:8001/mcp",
                 json=initialized_notification,
                 headers={
                     "Content-Type": "application/json",
@@ -84,7 +84,7 @@ async def test_mcp_initialization():
             }
             
             response = await client.post(
-                "http://localhost:8001/mcp/",
+                "http://localhost:8001/mcp",
                 json=tools_request,
                 headers={
                     "Content-Type": "application/json",
@@ -117,7 +117,7 @@ async def test_mcp_initialization():
             }
             
             response = await client.post(
-                "http://localhost:8001/mcp/",
+                "http://localhost:8001/mcp",
                 json=tool_call_request,
                 headers={
                     "Content-Type": "application/json",

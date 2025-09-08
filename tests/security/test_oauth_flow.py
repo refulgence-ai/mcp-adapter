@@ -725,7 +725,7 @@ class TestOAuthIntegration:
             
             # Test authenticated MCP access via direct endpoint
             response = await client.post(
-                f"{GATEWAY_URL}/mcp/",
+                f"{GATEWAY_URL}/mcp",
                 json=mcp_request,
                 headers={
                     "Content-Type": "application/json", 
