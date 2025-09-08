@@ -1,0 +1,203 @@
+{
+  "governance": {
+    "stakeholders": {
+      "CISO": {
+        "role": "security_authority",
+        "description": "Chief Information Security Officer",
+        "voting_weight": 1.0,
+        "veto_power": [
+          "user_management",
+          "emergency_access"
+        ],
+        "auto_vote": null
+      },
+      "ENTERPRISE_DEFAULT": {
+        "role": "enterprise_governance",
+        "description": "Default enterprise security policies",
+        "voting_weight": 1.0,
+        "auto_vote": "VoteDecision.DENY",
+        "scope": [
+          "all"
+        ]
+      },
+      "BUSINESS_LEAD": {
+        "role": "business_owner",
+        "description": "Business unit leader owning the data",
+        "voting_weight": 1.0,
+        "scope": [
+          "production_data",
+          "pii_data"
+        ]
+      },
+      "IT_ADMIN": {
+        "role": "technical_authority",
+        "description": "IT administration team",
+        "voting_weight": 1.0,
+        "override_for": [
+          "emergency_situations"
+        ]
+      },
+      "PROJECT_OWNER": {
+        "role": "project_authority",
+        "description": "Specific project owner",
+        "voting_weight": 0.5,
+        "scope": [
+          "project_specific_data"
+        ]
+      },
+      "END_USER": {
+        "role": "end_user_representative",
+        "description": "End user data owner",
+        "voting_weight": 0.5,
+        "scope": [
+          "development_environment"
+        ]
+      }
+    },
+    "permission_types": {
+      "database_admin_rights": {
+        "mcp_tools": [
+          "redshift_create_user",
+          "redshift_drop_database",
+          "redshift_alter_cluster"
+        ],
+        "eligible_voters": [
+          "StakeholderRole.CISO",
+          "StakeholderRole.ENTERPRISE_DEFAULT",
+          "StakeholderRole.IT_ADMIN"
+        ],
+        "risk_level": "CRITICAL",
+        "description": "SUPERUSER privileges, user management, cluster configuration"
+      },
+      "production_data_access": {
+        "mcp_tools": [
+          "redshift_execute_query",
+          "redshift_list_tables"
+        ],
+        "eligible_voters": [
+          "StakeholderRole.CISO",
+          "StakeholderRole.ENTERPRISE_DEFAULT",
+          "StakeholderRole.BUSINESS_LEAD",
+          "StakeholderRole.IT_ADMIN"
+        ],
+        "risk_level": "HIGH",
+        "query_filters": [
+          "WHERE",
+          "SELECT",
+          "JOIN"
+        ]
+      },
+      "pii_sensitive_data": {
+        "mcp_tools": [
+          "redshift_execute_query{table:contains('customer')}",
+          "redshift_export_data"
+        ],
+        "eligible_voters": [
+          "StakeholderRole.CISO",
+          "StakeholderRole.BUSINESS_LEAD"
+        ],
+        "risk_level": "CRITICAL",
+        "requires_legal": true
+      },
+      "schema_modification": {
+        "mcp_tools": [
+          "redshift_create_table",
+          "redshift_alter_table",
+          "redshift_drop_table"
+        ],
+        "eligible_voters": [
+          "StakeholderRole.CISO",
+          "StakeholderRole.ENTERPRISE_DEFAULT",
+          "StakeholderRole.IT_ADMIN"
+        ],
+        "risk_level": "HIGH",
+        "requires_approval_workflow": true
+      },
+      "query_execution": {
+        "mcp_tools": [
+          "redshift_execute_query"
+        ],
+        "eligible_voters": [
+          "StakeholderRole.ENTERPRISE_DEFAULT",
+          "StakeholderRole.IT_ADMIN"
+        ],
+        "risk_level": "MEDIUM",
+        "rate_limits": {
+          "developer": 1000,
+          "agent": 100
+        }
+      }
+    },
+    "approval_matrix": {
+      "developer": {
+        "database_admin_rights": {
+          "required": 2,
+          "total": 3,
+          "additional": []
+        },
+        "production_data_access": {
+          "required": 2,
+          "total": 4,
+          "additional": []
+        },
+        "pii_sensitive_data": {
+          "required": 1,
+          "total": 2,
+          "additional": []
+        },
+        "schema_modification": {
+          "required": 1,
+          "total": 3,
+          "additional": []
+        },
+        "query_execution": {
+          "required": 1,
+          "total": 2,
+          "additional": []
+        }
+      },
+      "coding_agent": {
+        "database_admin_rights": {
+          "required": 3,
+          "total": 3,
+          "additional": [
+            "external_audit"
+          ]
+        },
+        "production_data_access": {
+          "required": 4,
+          "total": 4,
+          "additional": [
+            "time_limit:1h"
+          ]
+        },
+        "pii_sensitive_data": {
+          "required": 2,
+          "total": 2,
+          "additional": [
+            "legal_review"
+          ]
+        },
+        "schema_modification": {
+          "required": 3,
+          "total": 3,
+          "additional": [
+            "approval_workflow"
+          ]
+        },
+        "query_execution": {
+          "required": 2,
+          "total": 2,
+          "additional": [
+            "rate_limit:100/hour"
+          ]
+        },
+        "user_management": "NEVER_ALLOWED",
+        "emergency_access": "NEVER_ALLOWED"
+      }
+    }
+  },
+  "active_votes": [],
+  "approval_cache": {},
+  "last_updated": "2025-09-08T13:31:52.044648+00:00"
+}

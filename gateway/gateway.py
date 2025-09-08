@@ -944,7 +944,11 @@ async def dashboard(request):
 async def admin_dashboard(request):
     """Refulgence admin dashboard for governance and policy management"""
     try:
-        with open('templates/admin.html', 'r') as f:
+        # Check for enhanced UI flag
+        use_enhanced = os.getenv('ENHANCED_UI', 'true').lower() == 'true'
+        template = 'admin_enhanced.html' if use_enhanced else 'admin.html'
+        
+        with open(f'templates/{template}', 'r') as f:
             html_content = f.read()
         return HTMLResponse(content=html_content)
     except FileNotFoundError:
