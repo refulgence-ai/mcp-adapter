@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refulgence Admin - AI Agent Governance Dashboard</title>
+    <style>
+        /* Same styles as admin_enhanced.html but with real data integration */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        /* Real-time indicator */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Activity feed styling */
+        .activity-feed {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .activity-item {
+            padding: 12px;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            animation: slideIn 0.3s ease;
+            position: relative;
+        }
+        
+        .activity-item.critical {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .activity-item.warning {
+            border-left-color: #ffc107;
+            background: #fffaf0;
+        }
+        
+        .activity-item.success {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .activity-item .timestamp {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            font-size: 0.8em;
+            color: #666;
+        }
+        
+        .activity-message {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .activity-details {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        /* Metrics cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .metric-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .metric-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        /* Button styles */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+            transform: translateY(-2px);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ffc107;
+            color: #333;
+        }
+        
+        /* Query tester */
+        .query-tester {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .query-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+        
+        .query-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .query-controls select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        
+        .query-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .query-actions button {
+            flex: 1;
+        }
+        
+        .test-result {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .test-result.show {
+            display: block;
+        }
+        
+        .test-result.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .test-result.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .test-result.danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Refulgence Command Center</h1>
+            <p>AI Agent Security Gateway - Real-time Governance Control</p>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>Live Data</span>
+            </div>
+            <div style="margin-top: 15px;">
+                <a href="/admin/drill-down" style="display: inline-block; background: #667eea; color: white; padding: 8px 16px; text-decoration: none; border-radius: 4px; font-weight: 600;">
+                    🔍 Advanced Activity Analysis
+                </a>
+            </div>
+        </div>
+        
+        <!-- Live Metrics -->
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="queries-per-hour">--</div>
+                <div class="metric-label">Queries/Hour</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="blocked-today" style="color: #dc3545;">--</div>
+                <div class="metric-label">Blocked Today</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="approved-today" style="color: #28a745;">--</div>
+                <div class="metric-label">Approved Today</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="active-agents">--</div>
+                <div class="metric-label">Active Agents</div>
+            </div>
+        </div>
+        
+        <!-- Query Tester -->
+        <div class="query-tester">
+            <h3>🧪 Test Governance Engine</h3>
+            <textarea class="query-input" id="test-query" placeholder="Enter SQL query to test...">SELECT * FROM customers WHERE country = 'USA';</textarea>
+            
+            <div class="query-controls">
+                <select id="subject-type">
+                    <option value="developer">Developer</option>
+                    <option value="coding_agent">Coding Agent</option>
+                </select>
+            </div>
+            
+            <div class="query-actions">
+                <button class="btn btn-primary" onclick="testQuery()">🧪 Test Query</button>
+                <button class="btn btn-success" onclick="saveAsPolicy()">💾 Save as Policy</button>
+                <button class="btn btn-warning" onclick="addToWhitelist()">✅ Whitelist</button>
+            </div>
+            
+            <div id="test-result" class="test-result"></div>
+        </div>
+        
+        <!-- Live Activity Feed -->
+        <div class="query-tester">
+            <h3>📊 Live Activity Feed</h3>
+            <div class="activity-feed" id="activity-feed">
+                <div style="text-align: center; padding: 20px; color: #666;">
+                    Loading recent activity...
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Real-time data integration
+        let lastActivityUpdate = 0;
+        
+        // Load real activity feed
+        async function loadActivityFeed() {
+            try {
+                const response = await fetch('/admin/api/activity?limit=20');
+                const events = await response.json();
+                
+                if (Array.isArray(events)) {
+                    renderActivityFeed(events);
+                }
+            } catch (error) {
+                console.error('Error loading activity feed:', error);
+            }
+        }
+        
+        // Load real metrics
+        async function loadMetrics() {
+            try {
+                const response = await fetch('/admin/api/metrics');
+                const stats = await response.json();
+                
+                if (stats) {
+                    updateMetricsDisplay(stats);
+                }
+            } catch (error) {
+                console.error('Error loading metrics:', error);
+            }
+        }
+        
+        // Render activity feed
+        function renderActivityFeed(events) {
+            const feed = document.getElementById('activity-feed');
+            
+            if (events.length === 0) {
+                feed.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No recent activity</div>';
+                return;
+            }
+            
+            feed.innerHTML = events.map(event => {
+                const timestamp = new Date(event.timestamp).toLocaleTimeString();
+                return `
+                    <div class="activity-item ${event.severity}">
+                        <div class="timestamp">${timestamp}</div>
+                        <div class="activity-message">${event.message}</div>
+                        <div class="activity-details">
+                            ${event.subject_id ? `Subject: ${event.subject_id}` : ''}
+                            ${event.tool_name ? `Tool: ${event.tool_name}` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Update metrics display
+        function updateMetricsDisplay(stats) {
+            document.getElementById('queries-per-hour').textContent = stats.queries_per_hour || 0;
+            document.getElementById('blocked-today').textContent = stats.blocked_today || 0;
+            document.getElementById('approved-today').textContent = stats.approved_today || 0;
+            document.getElementById('active-agents').textContent = stats.active_agents || 0;
+        }
+        
+        // Test query function
+        async function testQuery() {
+            const query = document.getElementById('test-query').value;
+            const subjectType = document.getElementById('subject-type').value;
+            const resultDiv = document.getElementById('test-result');
+            
+            try {
+                const response = await fetch('/admin/api/test-governance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: query,
+                        subject_type: subjectType
+                    })
+                });
+                
+                const result = await response.json();
+                
+                // Show result
+                resultDiv.className = 'test-result show';
+                
+                if (result.policy_decision === 'ALLOW') {
+                    resultDiv.className += ' success';
+                    resultDiv.innerHTML = `
+                        <strong>✅ ${result.policy_decision}</strong><br>
+                        ${result.message}<br>
+                        <small>Query would be executed</small>
+                    `;
+                } else if (result.policy_decision === 'REQUIRE_APPROVAL') {
+                    resultDiv.className += ' warning';
+                    resultDiv.innerHTML = `
+                        <strong>⚠️ ${result.policy_decision}</strong><br>
+                        ${result.message}<br>
+                        ${result.vote_request_id ? `<small>Vote Request: ${result.vote_request_id}</small>` : ''}
+                    `;
+                } else {
+                    resultDiv.className += ' danger';
+                    resultDiv.innerHTML = `
+                        <strong>🚨 ${result.policy_decision}</strong><br>
+                        ${result.message}<br>
+                        <small>Query blocked by governance</small>
+                    `;
+                }
+                
+                // Refresh activity feed to show the new test
+                setTimeout(loadActivityFeed, 500);
+                
+            } catch (error) {
+                resultDiv.className = 'test-result show danger';
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+            }
+        }
+        
+        // Placeholder functions
+        function saveAsPolicy() {
+            alert('Policy saved successfully! (This would create a new governance rule)');
+        }
+        
+        function addToWhitelist() {
+            alert('Query added to whitelist! (This would mark it as always allowed)');
+        }
+        
+        // Auto-refresh data
+        function startRealTimeUpdates() {
+            // Load initial data
+            loadActivityFeed();
+            loadMetrics();
+            
+            // Refresh every 3 seconds
+            setInterval(() => {
+                loadActivityFeed();
+                loadMetrics();
+            }, 3000);
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', startRealTimeUpdates);
+    </script>
+</body>
+</html>

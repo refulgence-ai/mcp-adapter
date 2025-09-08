@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refulgence Admin - AI Agent Governance Dashboard</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 10px;
+        }
+        
+        /* Live indicator */
+        .live-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            background: #28a745;
+            color: white;
+            border-radius: 15px;
+            font-size: 0.9em;
+            margin-top: 10px;
+        }
+        
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        /* Main layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 300px 1fr 400px;
+            gap: 20px;
+            height: calc(100vh - 200px);
+        }
+        
+        /* Sidebar filters */
+        .sidebar {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .sidebar h3 {
+            margin-bottom: 15px;
+            color: #333;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 5px;
+        }
+        
+        .filter-section {
+            margin-bottom: 25px;
+        }
+        
+        .filter-section h4 {
+            margin-bottom: 10px;
+            color: #555;
+        }
+        
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        
+        .filter-option input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .filter-option label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .severity-badge {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+        
+        .severity-critical { background: #dc3545; }
+        .severity-warning { background: #ffc107; }
+        .severity-info { background: #17a2b8; }
+        .severity-success { background: #28a745; }
+        
+        .search-box {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .search-box:focus {
+            border-color: #667eea;
+            outline: none;
+        }
+        
+        .time-filter {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .time-filter select {
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        
+        /* Activity feed */
+        .activity-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .activity-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .activity-stats {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .activity-stat {
+            background: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 8px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .activity-stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .activity-stat-label {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .activity-feed {
+            flex: 1;
+            overflow-y: auto;
+            max-height: 600px;
+        }
+        
+        .activity-item {
+            padding: 15px;
+            border-left: 4px solid #667eea;
+            background: #f8f9fa;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .activity-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .activity-item.selected {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+        }
+        
+        .activity-item.critical {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        
+        .activity-item.warning {
+            border-left-color: #ffc107;
+            background: #fffaf0;
+        }
+        
+        .activity-item.success {
+            border-left-color: #28a745;
+            background: #f0fff4;
+        }
+        
+        .activity-summary {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .activity-message {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+        
+        .activity-timestamp {
+            font-size: 0.85em;
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        .activity-meta {
+            display: flex;
+            gap: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .activity-tag {
+            background: #e9ecef;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+        }
+        
+        .activity-severity-critical { background: #f8d7da; color: #721c24; }
+        .activity-severity-warning { background: #fff3cd; color: #856404; }
+        .activity-severity-info { background: #d1ecf1; color: #0c5460; }
+        .activity-severity-success { background: #d4edda; color: #155724; }
+        
+        /* Detail panel */
+        .detail-panel {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            overflow-y: auto;
+        }
+        
+        .detail-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .detail-title {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #333;
+        }
+        
+        .detail-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .detail-section {
+            margin-bottom: 20px;
+        }
+        
+        .detail-section h4 {
+            margin-bottom: 10px;
+            color: #555;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 5px;
+        }
+        
+        .detail-field {
+            display: flex;
+            margin-bottom: 8px;
+        }
+        
+        .detail-label {
+            font-weight: 600;
+            width: 120px;
+            color: #666;
+        }
+        
+        .detail-value {
+            flex: 1;
+            color: #333;
+        }
+        
+        .code-block {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            white-space: pre-wrap;
+            overflow-x: auto;
+        }
+        
+        .json-viewer {
+            background: #282c34;
+            color: #abb2bf;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            overflow-x: auto;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .json-key {
+            color: #e06c75;
+        }
+        
+        .json-string {
+            color: #98c379;
+        }
+        
+        .json-number {
+            color: #d19a66;
+        }
+        
+        .json-boolean {
+            color: #56b6c2;
+        }
+        
+        /* Action buttons */
+        .detail-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5a6fd8;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+        
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .empty-state .icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            opacity: 0.3;
+        }
+        
+        /* Loading state */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-layout {
+                grid-template-columns: 250px 1fr;
+            }
+            
+            .detail-panel {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                order: 2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🛡️ Refulgence Activity Center</h1>
+            <p>Deep Dive into AI Agent Governance Events</p>
+            <div class="live-indicator">
+                <span class="live-dot"></span>
+                <span>Live Data</span>
+            </div>
+        </div>
+        
+        <div class="main-layout">
+            <!-- Sidebar Filters -->
+            <div class="sidebar">
+                <h3>🔍 Filters & Search</h3>
+                
+                <div class="filter-section">
+                    <input type="text" class="search-box" id="search-input" placeholder="Search events...">
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Severity Level</h4>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-critical" checked>
+                        <label for="filter-critical">
+                            <span class="severity-badge severity-critical"></span>
+                            Critical
+                        </label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-warning" checked>
+                        <label for="filter-warning">
+                            <span class="severity-badge severity-warning"></span>
+                            Warning
+                        </label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-info" checked>
+                        <label for="filter-info">
+                            <span class="severity-badge severity-info"></span>
+                            Info
+                        </label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-success" checked>
+                        <label for="filter-success">
+                            <span class="severity-badge severity-success"></span>
+                            Success
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Event Type</h4>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-query-blocked" checked>
+                        <label for="filter-query-blocked">Query Blocked</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-approval-requested" checked>
+                        <label for="filter-approval-requested">Approval Requested</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-vote-submitted" checked>
+                        <label for="filter-vote-submitted">Vote Submitted</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-policy-created" checked>
+                        <label for="filter-policy-created">Policy Created</label>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Time Range</h4>
+                    <div class="time-filter">
+                        <select id="time-range">
+                            <option value="1h">Last Hour</option>
+                            <option value="6h">Last 6 Hours</option>
+                            <option value="24h" selected>Last 24 Hours</option>
+                            <option value="7d">Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="filter-section">
+                    <h4>Subject Filter</h4>
+                    <select id="subject-filter" style="width: 100%; padding: 8px; border: 1px solid #dee2e6; border-radius: 4px;">
+                        <option value="">All Subjects</option>
+                        <option value="coding_agent">Coding Agents</option>
+                        <option value="developer">Developers</option>
+                        <option value="test_user">Test Users</option>
+                    </select>
+                </div>
+                
+                <button onclick="clearFilters()" style="width: 100%; padding: 10px; background: #6c757d; color: white; border: none; border-radius: 4px; margin-top: 15px;">
+                    Clear All Filters
+                </button>
+            </div>
+            
+            <!-- Main Activity Feed -->
+            <div class="activity-container">
+                <div class="activity-header">
+                    <h3>📊 Live Activity Stream</h3>
+                    <div class="loading-spinner" id="loading-indicator" style="display: none;"></div>
+                </div>
+                
+                <div class="activity-stats">
+                    <div class="activity-stat">
+                        <div class="activity-stat-value" id="total-events">0</div>
+                        <div class="activity-stat-label">Total Events</div>
+                    </div>
+                    <div class="activity-stat">
+                        <div class="activity-stat-value" id="critical-events" style="color: #dc3545;">0</div>
+                        <div class="activity-stat-label">Critical</div>
+                    </div>
+                    <div class="activity-stat">
+                        <div class="activity-stat-value" id="warning-events" style="color: #ffc107;">0</div>
+                        <div class="activity-stat-label">Warnings</div>
+                    </div>
+                    <div class="activity-stat">
+                        <div class="activity-stat-value" id="success-events" style="color: #28a745;">0</div>
+                        <div class="activity-stat-label">Success</div>
+                    </div>
+                </div>
+                
+                <div class="activity-feed" id="activity-feed">
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>Loading activity events...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Detail Panel -->
+            <div class="detail-panel" id="detail-panel">
+                <div class="detail-header">
+                    <div class="detail-title">Event Details</div>
+                    <button class="detail-close" onclick="closeDetailPanel()">×</button>
+                </div>
+                
+                <div id="detail-content">
+                    <div class="empty-state">
+                        <div class="icon">👆</div>
+                        <p>Select an event to view details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let allEvents = [];
+        let filteredEvents = [];
+        let selectedEvent = null;
+        
+        // Load and display activity data
+        async function loadActivityData() {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            loadingIndicator.style.display = 'inline-block';
+            
+            try {
+                const response = await fetch('/admin/api/activity?limit=100');
+                const events = await response.json();
+                
+                if (Array.isArray(events)) {
+                    allEvents = events;
+                    applyFilters();
+                }
+            } catch (error) {
+                console.error('Error loading activity data:', error);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+        
+        // Apply current filters
+        function applyFilters() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const timeRange = document.getElementById('time-range').value;
+            const subjectFilter = document.getElementById('subject-filter').value;
+            
+            // Get severity filters
+            const severityFilters = {
+                critical: document.getElementById('filter-critical').checked,
+                warning: document.getElementById('filter-warning').checked,
+                info: document.getElementById('filter-info').checked,
+                success: document.getElementById('filter-success').checked
+            };
+            
+            // Get event type filters
+            const eventTypeFilters = {
+                'query_blocked': document.getElementById('filter-query-blocked').checked,
+                'approval_requested': document.getElementById('filter-approval-requested').checked,
+                'approval_granted': document.getElementById('filter-vote-submitted').checked,
+                'approval_denied': document.getElementById('filter-vote-submitted').checked,
+                'policy_created': document.getElementById('filter-policy-created').checked
+            };
+            
+            // Apply time filter
+            const now = new Date();
+            const timeRanges = {
+                '1h': 1 * 60 * 60 * 1000,
+                '6h': 6 * 60 * 60 * 1000,
+                '24h': 24 * 60 * 60 * 1000,
+                '7d': 7 * 24 * 60 * 60 * 1000,
+                '30d': 30 * 24 * 60 * 60 * 1000
+            };
+            const timeThreshold = now.getTime() - timeRanges[timeRange];
+            
+            filteredEvents = allEvents.filter(event => {
+                // Time filter
+                const eventTime = new Date(event.timestamp).getTime();
+                if (eventTime < timeThreshold) return false;
+                
+                // Severity filter
+                if (!severityFilters[event.severity]) return false;
+                
+                // Event type filter
+                if (!eventTypeFilters[event.type]) return false;
+                
+                // Subject filter
+                if (subjectFilter && event.subject_id && !event.subject_id.includes(subjectFilter)) return false;
+                
+                // Search filter
+                if (searchTerm && !event.message.toLowerCase().includes(searchTerm)) return false;
+                
+                return true;
+            });
+            
+            renderActivityFeed();
+            updateStats();
+        }
+        
+        // Render the activity feed
+        function renderActivityFeed() {
+            const feed = document.getElementById('activity-feed');
+            
+            if (filteredEvents.length === 0) {
+                feed.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>No events match your filters</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            feed.innerHTML = filteredEvents.map((event, index) => {
+                const timestamp = new Date(event.timestamp);
+                const timeAgo = getTimeAgo(timestamp);
+                
+                return `
+                    <div class="activity-item ${event.severity}" onclick="selectEvent(${index})" data-event-id="${event.id}">
+                        <div class="activity-summary">
+                            <div class="activity-message">${event.message}</div>
+                            <div class="activity-timestamp">${timeAgo}</div>
+                        </div>
+                        <div class="activity-meta">
+                            <span class="activity-tag activity-severity-${event.severity}">${event.severity.toUpperCase()}</span>
+                            <span class="activity-tag">${event.type.replace('_', ' ').toUpperCase()}</span>
+                            ${event.subject_id ? `<span class="activity-tag">${event.subject_id}</span>` : ''}
+                            ${event.tool_name ? `<span class="activity-tag">${event.tool_name}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        // Select an event and show details
+        function selectEvent(index) {
+            const event = filteredEvents[index];
+            selectedEvent = event;
+            
+            // Update UI selection
+            document.querySelectorAll('.activity-item').forEach(item => item.classList.remove('selected'));
+            document.querySelector(`[data-event-id="${event.id}"]`).classList.add('selected');
+            
+            // Show detail panel
+            renderEventDetails(event);
+        }
+        
+        // Render event details
+        function renderEventDetails(event) {
+            const detailContent = document.getElementById('detail-content');
+            const timestamp = new Date(event.timestamp);
+            
+            detailContent.innerHTML = `
+                <div class="detail-section">
+                    <h4>📋 Basic Information</h4>
+                    <div class="detail-field">
+                        <div class="detail-label">Event ID:</div>
+                        <div class="detail-value">${event.id}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="detail-label">Type:</div>
+                        <div class="detail-value">${event.type.replace('_', ' ').toUpperCase()}</div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="detail-label">Severity:</div>
+                        <div class="detail-value">
+                            <span class="activity-tag activity-severity-${event.severity}">${event.severity.toUpperCase()}</span>
+                        </div>
+                    </div>
+                    <div class="detail-field">
+                        <div class="detail-label">Timestamp:</div>
+                        <div class="detail-value">${timestamp.toLocaleString()}</div>
+                    </div>
+                    ${event.subject_id ? `
+                    <div class="detail-field">
+                        <div class="detail-label">Subject:</div>
+                        <div class="detail-value">${event.subject_id}</div>
+                    </div>
+                    ` : ''}
+                    ${event.tool_name ? `
+                    <div class="detail-field">
+                        <div class="detail-label">Tool:</div>
+                        <div class="detail-value">${event.tool_name}</div>
+                    </div>
+                    ` : ''}
+                </div>
+                
+                <div class="detail-section">
+                    <h4>📝 Message</h4>
+                    <div class="code-block">${event.message}</div>
+                </div>
+                
+                ${event.details && Object.keys(event.details).length > 0 ? `
+                <div class="detail-section">
+                    <h4>🔍 Additional Details</h4>
+                    <div class="json-viewer">${formatJSON(event.details)}</div>
+                </div>
+                ` : ''}
+                
+                <div class="detail-actions">
+                    <button class="btn btn-primary" onclick="exportEvent()">📥 Export Event</button>
+                    <button class="btn btn-secondary" onclick="copyEventId()">📋 Copy Event ID</button>
+                    ${event.type.includes('query') ? `<button class="btn btn-danger" onclick="blockSimilar()">🚫 Block Similar</button>` : ''}
+                    ${event.type.includes('approval') ? `<button class="btn btn-success" onclick="createPolicy()">📋 Create Policy</button>` : ''}
+                </div>
+            `;
+        }
+        
+        // Format JSON for display
+        function formatJSON(obj) {
+            return JSON.stringify(obj, null, 2)
+                .replace(/"([^"]+)":/g, '<span class="json-key">"$1":</span>')
+                .replace(/: "([^"]+)"/g, ': <span class="json-string">"$1"</span>')
+                .replace(/: (\d+)/g, ': <span class="json-number">$1</span>')
+                .replace(/: (true|false)/g, ': <span class="json-boolean">$1</span>');
+        }
+        
+        // Update statistics
+        function updateStats() {
+            const stats = {
+                total: filteredEvents.length,
+                critical: filteredEvents.filter(e => e.severity === 'critical').length,
+                warning: filteredEvents.filter(e => e.severity === 'warning').length,
+                success: filteredEvents.filter(e => e.severity === 'success').length
+            };
+            
+            document.getElementById('total-events').textContent = stats.total;
+            document.getElementById('critical-events').textContent = stats.critical;
+            document.getElementById('warning-events').textContent = stats.warning;
+            document.getElementById('success-events').textContent = stats.success;
+        }
+        
+        // Utility functions
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diff = now - date;
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) return `${days}d ago`;
+            if (hours > 0) return `${hours}h ago`;
+            if (minutes > 0) return `${minutes}m ago`;
+            return 'Just now';
+        }
+        
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('time-range').value = '24h';
+            document.getElementById('subject-filter').value = '';
+            
+            // Reset checkboxes
+            document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = true);
+            
+            applyFilters();
+        }
+        
+        function closeDetailPanel() {
+            selectedEvent = null;
+            document.getElementById('detail-content').innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">👆</div>
+                    <p>Select an event to view details</p>
+                </div>
+            `;
+            document.querySelectorAll('.activity-item').forEach(item => item.classList.remove('selected'));
+        }
+        
+        // Action handlers
+        function exportEvent() {
+            if (!selectedEvent) return;
+            
+            const dataStr = JSON.stringify(selectedEvent, null, 2);
+            const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+            
+            const exportFileDefaultName = `event-${selectedEvent.id}.json`;
+            
+            const linkElement = document.createElement('a');
+            linkElement.setAttribute('href', dataUri);
+            linkElement.setAttribute('download', exportFileDefaultName);
+            linkElement.click();
+        }
+        
+        function copyEventId() {
+            if (!selectedEvent) return;
+            navigator.clipboard.writeText(selectedEvent.id);
+            alert('Event ID copied to clipboard!');
+        }
+        
+        function blockSimilar() {
+            if (!selectedEvent) return;
+            alert(`Creating policy to block similar ${selectedEvent.type} events...`);
+        }
+        
+        function createPolicy() {
+            if (!selectedEvent) return;
+            alert(`Creating governance policy based on this ${selectedEvent.type} event...`);
+        }
+        
+        // Event listeners
+        document.getElementById('search-input').addEventListener('input', applyFilters);
+        document.getElementById('time-range').addEventListener('change', applyFilters);
+        document.getElementById('subject-filter').addEventListener('change', applyFilters);
+        
+        // Filter checkboxes
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', applyFilters);
+        });
+        
+        // Auto-refresh
+        function startAutoRefresh() {
+            loadActivityData();
+            setInterval(loadActivityData, 5000); // Refresh every 5 seconds
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', startAutoRefresh);
+    </script>
+</body>
+</html>

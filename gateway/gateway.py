@@ -34,6 +34,12 @@ from governance import (
     StakeholderRole, PermissionType, PERMISSION_TYPES, governance_engine, start_cleanup_task
 )
 
+# Import activity tracking
+from activity_tracker import (
+    activity_tracker, track_query_execution, track_approval_request,
+    track_vote_decision, track_security_event, track_agent_lifecycle
+)
+
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, os.getenv('LOG_LEVEL', 'INFO')),
@@ -945,8 +951,15 @@ async def admin_dashboard(request):
     """Refulgence admin dashboard for governance and policy management"""
     try:
         # Check for enhanced UI flag
-        use_enhanced = os.getenv('ENHANCED_UI', 'true').lower() == 'true'
-        template = 'admin_enhanced.html' if use_enhanced else 'admin.html'
+        ui_mode = os.getenv('UI_MODE', 'enhanced_real').lower()
+        
+        template_map = {
+            'basic': 'admin.html',
+            'enhanced': 'admin_enhanced.html', 
+            'enhanced_real': 'admin_enhanced_real.html'
+        }
+        
+        template = template_map.get(ui_mode, 'admin_enhanced_real.html')
         
         with open(f'templates/{template}', 'r') as f:
             html_content = f.read()
@@ -961,6 +974,26 @@ async def admin_dashboard(request):
             <h1>Refulgence Admin Dashboard</h1>
             <p>Template file missing. Please check gateway/templates/admin.html</p>
             <p><a href="/dashboard">Back to Basic Dashboard</a></p>
+        </body>
+        </html>
+        """)
+
+@mcp.custom_route(path="/admin/drill-down", methods=["GET"])
+async def admin_drill_down_dashboard(request):
+    """Drill-down activity analysis dashboard"""
+    try:
+        with open('templates/admin_drill_down.html', 'r') as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Drill-Down Dashboard - Template Missing</title></head>
+        <body>
+            <h1>Drill-Down Dashboard</h1>
+            <p>Template file missing. Please check gateway/templates/admin_drill_down.html</p>
+            <p><a href="/admin">Back to Main Dashboard</a></p>
         </body>
         </html>
         """)
@@ -1030,6 +1063,9 @@ async def admin_api_submit_vote(request):
             return JSONResponse({"error": "Missing required fields"}, status_code=400)
         
         success = await submit_stakeholder_vote(request_id, stakeholder_name, decision)
+        
+        # Track the vote decision
+        await track_vote_decision(request_id, stakeholder_name, decision)
         
         if success:
             return JSONResponse({"status": "success", "message": "Vote submitted successfully"})
@@ -1106,6 +1142,14 @@ async def admin_api_test_governance(request):
             context=context
         )
         
+        # Track the governance test as an activity event
+        allowed = policy_decision.action == "ALLOW"
+        await track_query_execution(query, f"test_user ({subject_type})", allowed)
+        
+        if policy_decision.action == "REQUIRE_APPROVAL":
+            await track_approval_request("redshift_execute_query", "test_user", 
+                                       "HIGH" if "DROP" in query.upper() else "MEDIUM")
+        
         return JSONResponse({
             "status": "success",
             "policy_decision": policy_decision.action,
@@ -1117,6 +1161,73 @@ async def admin_api_test_governance(request):
         
     except Exception as e:
         logger.error(f"Error testing governance: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/activity", methods=["GET"])
+async def admin_api_activity_feed(request):
+    """API endpoint for live activity feed with filtering support"""
+    try:
+        limit = int(request.query_params.get("limit", "50"))
+        severity = request.query_params.get("severity")  # critical, warning, info, success
+        event_type = request.query_params.get("type")    # query_blocked, approval_requested, etc.
+        subject_id = request.query_params.get("subject_id")
+        time_range = request.query_params.get("time_range", "24h")  # 1h, 6h, 24h, 7d, 30d
+        search = request.query_params.get("search", "").lower()
+        
+        events = activity_tracker.get_recent_events(limit * 2)  # Get more for filtering
+        
+        # Apply filters
+        filtered_events = []
+        now = datetime.now(timezone.utc)
+        
+        # Time range filter
+        time_deltas = {
+            "1h": 3600,
+            "6h": 6 * 3600, 
+            "24h": 24 * 3600,
+            "7d": 7 * 24 * 3600,
+            "30d": 30 * 24 * 3600
+        }
+        time_threshold = now.timestamp() - time_deltas.get(time_range, 24 * 3600)
+        
+        for event in events:
+            event_dict = event if isinstance(event, dict) else event.to_dict()
+            event_time = datetime.fromisoformat(event_dict["timestamp"].replace('Z', '+00:00')).timestamp()
+            
+            # Apply filters
+            if event_time < time_threshold:
+                continue
+                
+            if severity and event_dict["severity"] != severity:
+                continue
+                
+            if event_type and event_dict["type"] != event_type:
+                continue
+                
+            if subject_id and event_dict.get("subject_id") != subject_id:
+                continue
+                
+            if search and search not in event_dict["message"].lower():
+                continue
+            
+            filtered_events.append(event_dict)
+            
+            if len(filtered_events) >= limit:
+                break
+        
+        return JSONResponse(filtered_events)
+    except Exception as e:
+        logger.error(f"Error getting activity feed: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/metrics", methods=["GET"])
+async def admin_api_live_metrics(request):
+    """API endpoint for live metrics"""
+    try:
+        stats = activity_tracker.get_stats()
+        return JSONResponse(stats)
+    except Exception as e:
+        logger.error(f"Error getting live metrics: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
 @mcp.custom_route(path="/health", methods=["GET"])
