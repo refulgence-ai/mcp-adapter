@@ -11,6 +11,7 @@ services:
     depends_on:
       - hello-world
       - latex-server
+      - redshift-server
     networks:
       - mcp-network
     volumes:
@@ -63,6 +64,25 @@ services:
     volumes:
       - ./file-server:/app
       - ./file-server/shared_files:/shared_files
+
+  # AWS Redshift server for enterprise data governance demo
+  redshift-server:
+    build: ./redshift-server
+    container_name: mcp-adapter-redshift-server
+    ports:
+      - "8004:8000"
+    environment:
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DEBUG=${DEBUG:-false}
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - REDSHIFT_CLUSTER_ID=${REDSHIFT_CLUSTER_ID}
+      - REDSHIFT_DATABASE=${REDSHIFT_DATABASE}
+      - REDSHIFT_USER=${REDSHIFT_USER}
+      - MOCK_MODE=${MOCK_MODE:-true}
+    networks:
+      - mcp-network
+    volumes:
+      - ./redshift-server:/app
 
 networks:
   mcp-network:

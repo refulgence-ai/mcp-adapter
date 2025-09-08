@@ -1,0 +1,206 @@
+{
+  "safe_queries": [
+    {
+      "name": "Product Count",
+      "query": "SELECT COUNT(*) FROM products WHERE price > 100;",
+      "subject_type": "developer",
+      "expected_result": "ALLOW or low-risk approval",
+      "purpose": "Basic analytics query"
+    },
+    {
+      "name": "Order Statistics",
+      "query": "SELECT COUNT(*), AVG(total) FROM orders WHERE date > '2024-01-01';",
+      "subject_type": "developer",
+      "expected_result": "ALLOW or low-risk approval",
+      "purpose": "Aggregate statistics"
+    },
+    {
+      "name": "Inventory Check",
+      "query": "SELECT product_id, quantity FROM inventory WHERE quantity < 10;",
+      "subject_type": "developer",
+      "expected_result": "ALLOW or low-risk approval",
+      "purpose": "Inventory monitoring"
+    }
+  ],
+  "medium_risk_queries": [
+    {
+      "name": "Customer List",
+      "query": "SELECT id, name, email FROM customers LIMIT 100;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL",
+      "violations": ["Customer data table access"],
+      "purpose": "Customer data access"
+    },
+    {
+      "name": "User Activity",
+      "query": "SELECT * FROM user_sessions WHERE last_active > NOW() - INTERVAL '1 day';",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL",
+      "violations": ["Unrestricted SELECT *", "User session data"],
+      "purpose": "User activity monitoring"
+    },
+    {
+      "name": "Sales Data",
+      "query": "SELECT customer_id, SUM(amount) FROM transactions GROUP BY customer_id;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL",
+      "violations": ["Financial data access"],
+      "purpose": "Financial data aggregation"
+    }
+  ],
+  "high_risk_queries": [
+    {
+      "name": "PII Access - SSN",
+      "query": "SELECT * FROM customers WHERE ssn IS NOT NULL;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with HIGH risk",
+      "violations": [
+        "Direct PII column access",
+        "Customer data table access",
+        "Unrestricted SELECT *"
+      ],
+      "purpose": "PII data breach attempt"
+    },
+    {
+      "name": "Credit Card Data",
+      "query": "SELECT card_number, cvv FROM payment_methods;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with HIGH risk",
+      "violations": [
+        "Credit card data access",
+        "PCI compliance violation"
+      ],
+      "purpose": "Payment data access"
+    },
+    {
+      "name": "Password Hashes",
+      "query": "SELECT username, password_hash FROM users;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with HIGH risk",
+      "violations": [
+        "Security credential access",
+        "Authentication data exposure"
+      ],
+      "purpose": "Credential harvesting attempt"
+    }
+  ],
+  "critical_risk_queries": [
+    {
+      "name": "Drop Table",
+      "query": "DROP TABLE customers;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with CRITICAL risk",
+      "violations": [
+        "CRITICAL: Destructive DROP operation",
+        "Schema object deletion"
+      ],
+      "purpose": "Table deletion attempt"
+    },
+    {
+      "name": "Drop Database",
+      "query": "DROP DATABASE production_data;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with CRITICAL risk",
+      "violations": [
+        "CRITICAL: Destructive DROP operation",
+        "Database deletion attempt"
+      ],
+      "purpose": "Database destruction"
+    },
+    {
+      "name": "Truncate Table",
+      "query": "TRUNCATE TABLE audit_logs;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with CRITICAL risk",
+      "violations": [
+        "CRITICAL: Data destruction operation",
+        "Audit trail deletion"
+      ],
+      "purpose": "Data purge attempt"
+    },
+    {
+      "name": "Mass Delete",
+      "query": "DELETE FROM customers WHERE 1=1;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with CRITICAL risk",
+      "violations": [
+        "Mass deletion operation",
+        "No WHERE clause protection"
+      ],
+      "purpose": "Mass data deletion"
+    },
+    {
+      "name": "Schema Alteration",
+      "query": "ALTER TABLE users DROP COLUMN password_hash;",
+      "subject_type": "coding_agent",
+      "expected_result": "REQUIRE_APPROVAL with HIGH risk",
+      "violations": [
+        "Schema modification",
+        "Security column removal"
+      ],
+      "purpose": "Schema corruption"
+    }
+  ],
+  "sql_injection_attempts": [
+    {
+      "name": "Classic Injection",
+      "query": "SELECT * FROM users WHERE id = '1' OR '1'='1';",
+      "subject_type": "coding_agent",
+      "expected_result": "BLOCKED - SQL injection detected",
+      "violations": ["SQL injection pattern"],
+      "purpose": "SQL injection test"
+    },
+    {
+      "name": "Union Injection",
+      "query": "SELECT name FROM products UNION SELECT password FROM users;",
+      "subject_type": "coding_agent",
+      "expected_result": "BLOCKED - UNION operation",
+      "violations": ["UNION operation", "Cross-table data access"],
+      "purpose": "Data exfiltration attempt"
+    },
+    {
+      "name": "Comment Injection",
+      "query": "SELECT * FROM users WHERE username = 'admin'--' AND password = 'xyz';",
+      "subject_type": "coding_agent",
+      "expected_result": "BLOCKED - SQL comment injection",
+      "violations": ["SQL comment bypass"],
+      "purpose": "Authentication bypass"
+    }
+  ],
+  "demo_sequence": [
+    {
+      "step": 1,
+      "title": "Safe Query",
+      "query": "SELECT COUNT(*) FROM products WHERE price > 100;",
+      "subject_type": "developer",
+      "narrative": "Start with a legitimate business query to show the system allows normal operations"
+    },
+    {
+      "step": 2,
+      "title": "Customer Data Access",
+      "query": "SELECT * FROM customers LIMIT 10;",
+      "subject_type": "coding_agent",
+      "narrative": "Show that customer data requires approval even for limited queries"
+    },
+    {
+      "step": 3,
+      "title": "PII Access Attempt",
+      "query": "SELECT * FROM customers WHERE ssn IS NOT NULL;",
+      "subject_type": "coding_agent",
+      "narrative": "Demonstrate high-risk PII protection with multiple violations"
+    },
+    {
+      "step": 4,
+      "title": "Destructive Operation",
+      "query": "DROP TABLE customers;",
+      "subject_type": "coding_agent",
+      "narrative": "Show critical risk detection for destructive operations"
+    },
+    {
+      "step": 5,
+      "title": "Stakeholder Voting",
+      "action": "Switch to Pending Approvals tab and vote as CISO",
+      "narrative": "Demonstrate the governance workflow with stakeholder decisions"
+    }
+  ]
+}

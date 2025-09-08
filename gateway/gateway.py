@@ -27,6 +27,13 @@ import httpx
 import asyncio
 from fastapi.responses import HTMLResponse, JSONResponse
 
+# Import governance system
+from governance import (
+    enforce_policy, PolicyDecision,
+    get_pending_approvals_for_stakeholder, submit_stakeholder_vote,
+    StakeholderRole, PermissionType, PERMISSION_TYPES, governance_engine, start_cleanup_task
+)
+
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, os.getenv('LOG_LEVEL', 'INFO')),
@@ -100,10 +107,43 @@ async def initialize_tool_registry():
     logger.info(f"Discovered {len(tool_registry)} tools from {len(MCP_SERVERS)} servers")
 
 # Create static proxy tools for known backend tools
-async def call_backend_tool_direct(server_url: str, tool_name: str, arguments: dict) -> str:
-    """Call a tool on a specific backend server directly using session pool"""
+async def call_backend_tool_direct(server_url: str, tool_name: str, arguments: dict, context: dict = None) -> str:
+    """Call a tool on a specific backend server directly using session pool with policy enforcement"""
     session_id = None
     try:
+        # Apply governance policy enforcement
+        if context is None:
+            context = {
+                "subject_type": "coding_agent",  # Default to more restrictive
+                "subject_id": "unknown_agent",
+                "server_url": server_url,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+        # Check if this tool requires governance
+        if any(governed_tool in tool_name for governed_tool in ["redshift_", "execute_query", "list_tables", "list_databases"]):
+            policy_decision = await enforce_policy(tool_name, arguments, context)
+            
+            if policy_decision.action == "DENY":
+                return json.dumps({
+                    "status": "blocked",
+                    "reason": "policy_violation",
+                    "message": policy_decision.message,
+                    "tool": tool_name,
+                    "governance_enabled": True
+                })
+            
+            elif policy_decision.action == "REQUIRE_APPROVAL":
+                return json.dumps({
+                    "status": "pending_approval",
+                    "reason": "governance_required",
+                    "message": policy_decision.message,
+                    "vote_request_id": policy_decision.vote_request_id,
+                    "tool": tool_name,
+                    "governance_enabled": True,
+                    "approval_dashboard": "http://localhost:8080/admin"
+                })
+        
         client, session_id = await get_backend_session(server_url)
         
         # Make MCP call to backend server
@@ -161,6 +201,10 @@ def get_latex_server_url() -> str:
     """Get latex server URL - use Docker internal URL since we're in Docker"""
     return "http://latex-server:8000"
 
+def get_redshift_server_url() -> str:
+    """Get redshift server URL - use Docker internal URL since we're in Docker"""
+    return "http://redshift-server:8000"
+
 @mcp.tool
 async def hello_greet(name: str = "World", greeting: str = "Hello") -> str:
     """Generate a greeting message via hello server"""
@@ -206,6 +250,37 @@ async def latex_compile_latex_by_id(file_id: str, compiler: str = None, output_f
     if output_filename:
         request["output_filename"] = output_filename
     return await call_backend_tool_direct(get_latex_server_url(), "compile_latex_by_id", {"request": request})
+
+# Redshift tools for enterprise data governance demo
+@mcp.tool
+async def redshift_list_clusters() -> str:
+    """List available Redshift clusters with basic information"""
+    return await call_backend_tool_direct(get_redshift_server_url(), "list_clusters", {})
+
+@mcp.tool
+async def redshift_list_databases() -> str:
+    """List available databases in Redshift clusters"""
+    return await call_backend_tool_direct(get_redshift_server_url(), "list_databases", {})
+
+@mcp.tool
+async def redshift_list_schemas(database: str) -> str:
+    """List available schemas in a specific database"""
+    return await call_backend_tool_direct(get_redshift_server_url(), "list_schemas", {"database": database})
+
+@mcp.tool
+async def redshift_list_tables(database: str, schema: str = "public") -> str:
+    """List available tables and views in a specific schema"""
+    return await call_backend_tool_direct(get_redshift_server_url(), "list_tables", {"database": database, "schema": schema})
+
+@mcp.tool
+async def redshift_list_columns(database: str, schema: str, table: str) -> str:
+    """List column definitions for a specific table"""
+    return await call_backend_tool_direct(get_redshift_server_url(), "list_columns", {"database": database, "schema": schema, "table": table})
+
+@mcp.tool
+async def redshift_execute_query(query: str, database: str = "production_db", limit: int = 100) -> str:
+    """Execute a read-only SQL query with governance controls"""
+    return await call_backend_tool_direct(get_redshift_server_url(), "execute_query", {"query": query, "database": database, "limit": limit})
 
 async def register_backend_tools():
     """Initialize tool registry (tools are now statically defined above)"""
@@ -860,6 +935,185 @@ async def dashboard(request):
     """
     
     return HTMLResponse(content=html)
+
+# ============================================================================
+# REFULGENCE ADMIN DASHBOARD AND GOVERNANCE UI
+# ============================================================================
+
+@mcp.custom_route(path="/admin", methods=["GET"])
+async def admin_dashboard(request):
+    """Refulgence admin dashboard for governance and policy management"""
+    try:
+        with open('templates/admin.html', 'r') as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        # Fallback if template file is missing
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Refulgence Admin - Template Missing</title></head>
+        <body>
+            <h1>Refulgence Admin Dashboard</h1>
+            <p>Template file missing. Please check gateway/templates/admin.html</p>
+            <p><a href="/dashboard">Back to Basic Dashboard</a></p>
+        </body>
+        </html>
+        """)
+
+@mcp.custom_route(path="/admin/api/stats", methods=["GET"])
+async def admin_api_stats(request):
+    """API endpoint for dashboard statistics"""
+    try:
+        pending_votes = await governance_engine.list_pending_votes()
+        
+        # Count votes by status (simplified for demo)
+        stats = {
+            "pending_votes": len(pending_votes),
+            "approved_today": 0,  # Would calculate from governance_engine.active_votes
+            "denied_today": 0,    # Would calculate from governance_engine.active_votes  
+            "connected_servers": len(MCP_SERVERS),
+            "total_tools": len(tool_registry),
+            "governance_enabled": True,
+            "last_updated": datetime.now(timezone.utc).isoformat()
+        }
+        
+        return JSONResponse(stats)
+    except Exception as e:
+        logger.error(f"Error getting admin stats: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/pending-votes", methods=["GET"])
+async def admin_api_pending_votes(request):
+    """API endpoint for pending approval requests"""
+    try:
+        stakeholder_param = request.query_params.get("stakeholder")
+        stakeholder = None
+        if stakeholder_param:
+            try:
+                stakeholder = StakeholderRole(stakeholder_param.upper())
+            except ValueError:
+                pass
+        
+        pending_approvals = await get_pending_approvals_for_stakeholder(stakeholder)
+        
+        # Add risk level and enhanced details
+        for approval in pending_approvals:
+            # Add risk level based on permission type
+            permission_type = PermissionType(approval["permission_type"])
+            permission_config = PERMISSION_TYPES.get(permission_type, {})
+            approval["risk_level"] = permission_config.get("risk_level", "MEDIUM").lower()
+            
+            # Add security violations if available in context
+            context = approval.get("context", {})
+            approval["violations"] = context.get("violations", [])
+        
+        return JSONResponse(pending_approvals)
+    except Exception as e:
+        logger.error(f"Error getting pending votes: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/vote", methods=["POST"])
+async def admin_api_submit_vote(request):
+    """API endpoint for submitting stakeholder votes"""
+    try:
+        data = await request.json()
+        request_id = data.get("request_id")
+        stakeholder_name = data.get("stakeholder")
+        decision = data.get("decision")
+        
+        if not all([request_id, stakeholder_name, decision]):
+            return JSONResponse({"error": "Missing required fields"}, status_code=400)
+        
+        success = await submit_stakeholder_vote(request_id, stakeholder_name, decision)
+        
+        if success:
+            return JSONResponse({"status": "success", "message": "Vote submitted successfully"})
+        else:
+            return JSONResponse({"error": "Failed to submit vote"}, status_code=400)
+            
+    except Exception as e:
+        logger.error(f"Error submitting vote: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/servers", methods=["GET"])
+async def admin_api_list_servers(request):
+    """API endpoint for listing MCP servers"""
+    try:
+        servers = []
+        for server_name, config in MCP_SERVERS.items():
+            servers.append({
+                "name": server_name.title(),
+                "url": config["url"],
+                "description": config.get("description", ""),
+                "vendor": config.get("vendor", "unknown"),
+                "access_level": config.get("access_level", "public"),
+                "risk_level": config.get("risk_level", "medium"),
+                "status": "online"  # Would check actual status
+            })
+        
+        return JSONResponse(servers)
+    except Exception as e:
+        logger.error(f"Error listing servers: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/servers", methods=["POST"])
+async def admin_api_add_server(request):
+    """API endpoint for adding new MCP servers"""
+    try:
+        data = await request.json()
+        
+        # Basic validation
+        required_fields = ["name", "url", "vendor", "access_level"]
+        if not all(field in data for field in required_fields):
+            return JSONResponse({"error": "Missing required fields"}, status_code=400)
+        
+        # In a real implementation, would update servers.json and reload configuration
+        # For demo purposes, just return success
+        logger.info(f"Request to add new server: {data}")
+        
+        return JSONResponse({
+            "status": "success", 
+            "message": f"Server '{data['name']}' would be added (demo mode)"
+        })
+        
+    except Exception as e:
+        logger.error(f"Error adding server: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/test-governance", methods=["POST"])
+async def admin_api_test_governance(request):
+    """API endpoint for testing governance with sample queries"""
+    try:
+        data = await request.json()
+        query = data.get("query", "SELECT * FROM customers")
+        subject_type = data.get("subject_type", "coding_agent")
+        
+        # Test the governance engine with the provided query
+        context = {
+            "subject_type": subject_type,
+            "subject_id": "test_user",
+            "test_mode": True
+        }
+        
+        policy_decision = await enforce_policy(
+            tool_name="redshift_execute_query",
+            arguments={"query": query},
+            context=context
+        )
+        
+        return JSONResponse({
+            "status": "success",
+            "policy_decision": policy_decision.action,
+            "message": policy_decision.message,
+            "vote_request_id": policy_decision.vote_request_id,
+            "query": query,
+            "subject_type": subject_type
+        })
+        
+    except Exception as e:
+        logger.error(f"Error testing governance: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
 
 @mcp.custom_route(path="/health", methods=["GET"])
 async def health_check(request):

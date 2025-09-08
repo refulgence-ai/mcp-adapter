@@ -4,13 +4,24 @@
       "url": "http://hello-world:8000",
       "description": "Hello World test server",
       "access_level": "public",
-      "allowed_roles": ["*"]
+      "allowed_roles": ["*"],
+      "vendor": "internal"
     },
     "latex": {
       "url": "http://latex-server:8000", 
       "description": "LaTeX PDF compilation server",
       "access_level": "public",
-      "allowed_roles": ["*"]
+      "allowed_roles": ["*"],
+      "vendor": "internal"
+    },
+    "redshift": {
+      "url": "http://redshift-server:8000",
+      "description": "AWS Redshift data access with enterprise governance",
+      "access_level": "restricted",
+      "allowed_roles": ["admin", "data_analyst"],
+      "vendor": "aws",
+      "governance_required": true,
+      "risk_level": "high"
     }
   },
   "rbac": {
