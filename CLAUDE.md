@@ -11,6 +11,12 @@ This is the MCP Adapter - a production-ready HTTP gateway that demonstrates buil
 
 For security features, enterprise architecture, and value proposition details, see the main [README.md](README.md).
 
+## Refulgence Admin Interface Documentation
+
+**🛡️ Complete Admin Guide**: [REFULGENCE_ADMIN_GUIDE.md](REFULGENCE_ADMIN_GUIDE.md) - Comprehensive documentation for understanding, using, and extending the Refulgence Admin Interface with demo capabilities, API reference, and development guidance.
+
+**🎮 Demo Checklist**: [DEMO_CHECKLIST.md](DEMO_CHECKLIST.md) - Complete demo walkthrough guide with troubleshooting, audience-specific scenarios, and success metrics for delivering smooth demonstrations.
+
 The project contains:
 
 1. **Gateway Server** (`gateway/`) - MCP server that aggregates tools from multiple backend MCP servers

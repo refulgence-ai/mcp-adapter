@@ -951,15 +951,16 @@ async def admin_dashboard(request):
     """Refulgence admin dashboard for governance and policy management"""
     try:
         # Check for enhanced UI flag
-        ui_mode = os.getenv('UI_MODE', 'enhanced_real').lower()
+        ui_mode = os.getenv('UI_MODE', 'comprehensive').lower()
         
         template_map = {
             'basic': 'admin.html',
             'enhanced': 'admin_enhanced.html', 
-            'enhanced_real': 'admin_enhanced_real.html'
+            'enhanced_real': 'admin_enhanced_real.html',
+            'comprehensive': 'admin_comprehensive.html'
         }
         
-        template = template_map.get(ui_mode, 'admin_enhanced_real.html')
+        template = template_map.get(ui_mode, 'admin_comprehensive.html')
         
         with open(f'templates/{template}', 'r') as f:
             html_content = f.read()

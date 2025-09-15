@@ -352,7 +352,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-08T13:24:51.169858+00:00",
       "expires_at": "2025-09-08T14:24:51.169862+00:00",
       "current_request_context": {
@@ -385,7 +385,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-08T13:24:53.220203+00:00",
       "expires_at": "2025-09-08T14:24:53.220207+00:00",
       "current_request_context": {
@@ -423,7 +423,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-08T13:24:55.275693+00:00",
       "expires_at": "2025-09-08T14:24:55.275700+00:00",
       "current_request_context": {
@@ -456,7 +456,7 @@
         "CISO": "DENY",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-08T16:59:39.622193+00:00",
       "expires_at": "2025-09-08T17:59:39.622196+00:00",
       "current_request_context": {
@@ -494,7 +494,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-08T16:59:49.621042+00:00",
       "expires_at": "2025-09-08T17:59:49.621048+00:00",
       "current_request_context": {
@@ -530,7 +530,7 @@
         "BUSINESS_LEAD": "PENDING",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-08T17:23:39.099205+00:00",
       "expires_at": "2025-09-08T18:23:39.099207+00:00",
       "current_request_context": {
@@ -551,8 +551,45 @@
           "MEDIUM: Data modification operation"
         ]
       }
+    },
+    {
+      "request_id": "vote_1757715261_1100",
+      "permission_type": "pii_sensitive_data",
+      "subject_type": "developer",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "SELECT * FROM customers WHERE ssn IS NOT NULL;"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "BUSINESS_LEAD": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-12T22:14:21.830129+00:00",
+      "expires_at": "2025-09-12T23:14:21.830133+00:00",
+      "current_request_context": {
+        "subject_type": "developer",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "SELECT * FROM customers WHERE ssn IS NOT NULL;",
+          "query_length": 46,
+          "tables_accessed": [
+            "CUSTOMERS"
+          ],
+          "operations": [
+            "select"
+          ]
+        },
+        "violations": [
+          "HIGH: Direct PII column access",
+          "HIGH: Customer data table access",
+          "MEDIUM: Unrestricted SELECT * without LIMIT"
+        ]
+      }
     }
   ],
   "approval_cache": {},
-  "last_updated": "2025-09-08T17:23:39.099264+00:00"
+  "last_updated": "2025-09-12T22:14:21.831044+00:00"
 }
