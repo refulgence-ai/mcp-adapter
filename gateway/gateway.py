@@ -999,6 +999,26 @@ async def admin_drill_down_dashboard(request):
         </html>
         """)
 
+@mcp.custom_route(path="/demo", methods=["GET"])
+async def demo_guide(request):
+    """Simple demo instructions page"""
+    try:
+        with open('templates/demo_guide.html', 'r') as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Demo Guide - Template Missing</title></head>
+        <body>
+            <h1>Demo Guide</h1>
+            <p>Template file missing. Please check gateway/templates/demo_guide.html</p>
+            <p><a href="/admin">Go to Admin Dashboard</a></p>
+        </body>
+        </html>
+        """)
+
 @mcp.custom_route(path="/admin/api/stats", methods=["GET"])
 async def admin_api_stats(request):
     """API endpoint for dashboard statistics"""

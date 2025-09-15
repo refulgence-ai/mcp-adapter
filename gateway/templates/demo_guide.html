@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refulgence Demo Guide</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        h1 {
+            color: #667eea;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            color: #764ba2;
+            margin-top: 30px;
+            border-left: 4px solid #764ba2;
+            padding-left: 10px;
+        }
+        
+        .demo-section {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .step {
+            margin: 15px 0;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-left: 3px solid #28a745;
+            border-radius: 4px;
+        }
+        
+        .action {
+            background: #e8f4f8;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-radius: 4px;
+            font-weight: 600;
+        }
+        
+        .talking-point {
+            background: #fff3cd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            border-left: 3px solid #ffc107;
+        }
+        
+        code {
+            background: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .url {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .button-ref {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #667eea;
+            color: white;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+        
+        .warning {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        
+        .quick-ref {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            max-width: 250px;
+        }
+        
+        @media (max-width: 1200px) {
+            .quick-ref {
+                position: static;
+                margin-bottom: 20px;
+                max-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quick-ref">
+        <h3>Quick Links</h3>
+        <ul>
+            <li><a href="/admin" class="url">Admin Dashboard</a></li>
+            <li><a href="/admin/drill-down" class="url">Activity Analysis</a></li>
+            <li><a href="/dashboard" class="url">MCP Dashboard</a></li>
+            <li><a href="/sessions" class="url">Sessions</a></li>
+        </ul>
+    </div>
+
+    <h1>🎮 Refulgence Demo Guide</h1>
+    <p><em>Simple, step-by-step instructions for demonstrating the AI Agent Security Gateway</em></p>
+
+    <div class="demo-section">
+        <h2>1️⃣ Opening - The Problem (2 minutes)</h2>
+        
+        <div class="step">
+            <strong>Start at:</strong> <a href="/admin" class="url">http://localhost:8080/admin</a>
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "Imagine you have AI coding agents with access to your production databases. How do you ensure they don't accidentally drop tables or expose sensitive data? Refulgence is an AI Agent Security Gateway - think of it as a firewall specifically for AI agents."
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">⚡ Simulate Event</span> in the header
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "Every AI agent action goes through our governance engine. Let me show you how this works."
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>2️⃣ Core Demo - Governance in Action (5 minutes)</h2>
+        
+        <h3>A. Test a Dangerous Query</h3>
+        <div class="step">
+            <strong>Location:</strong> Main dashboard query tester (center of page)
+        </div>
+        
+        <div class="action">
+            In the query box, type: <code>DROP TABLE customers;</code>
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">🧪 Test Query</span>
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "The system immediately blocks destructive operations. This happens in real-time before the query reaches your database."
+        </div>
+
+        <h3>B. Test a PII Access Query</h3>
+        <div class="action">
+            Change query to: <code>SELECT * FROM customers WHERE ssn IS NOT NULL</code>
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">🧪 Test Query</span>
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "PII access triggers our approval workflow. The query is held until authorized stakeholders approve it."
+        </div>
+
+        <h3>C. Show the Policy Matrix</h3>
+        <div class="action">
+            Click the <span class="button-ref">📋 Policy Matrix</span> tab
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">Load Demo Matrix</span> (in the blue demo box)
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "This is where you configure who can do what. Notice coding agents are restricted while security analysts have override capabilities."
+        </div>
+        
+        <div class="action">
+            Click any cell in the matrix to show it's editable
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "Policies are completely customizable. You can set ALLOW, DENY, or REQUIRE_APPROVAL for any combination of user type and action."
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>3️⃣ User Management & Inspection (2 minutes)</h2>
+        
+        <div class="action">
+            Click the <span class="button-ref">👥 User Management</span> tab
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">Load Demo Users</span> (in the blue demo box)
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">Test Inspector</span>
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "Every user and AI agent has a complete audit trail. We track permissions, access patterns, and can instantly suspend access if needed."
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>4️⃣ Activity Analysis (2 minutes)</h2>
+        
+        <div class="action">
+            Navigate to: <a href="/admin/drill-down" class="url">http://localhost:8080/admin/drill-down</a>
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "This is our forensic analysis interface. Every governance decision is logged and searchable."
+        </div>
+        
+        <div class="action">
+            Click on any event in the activity feed (center panel)
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "You can drill down into any event to see exactly what was attempted, who attempted it, and what governance decision was made."
+        </div>
+        
+        <div class="action">
+            Use the severity filters (left panel) - uncheck "Info" and "Success"
+        </div>
+        
+        <div class="talking-point">
+            <strong>Say:</strong> "Filter by severity, time range, or search for specific patterns. Perfect for compliance reporting and security audits."
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>5️⃣ Closing - The Value (1 minute)</h2>
+        
+        <div class="action">
+            Return to: <a href="/admin" class="url">http://localhost:8080/admin</a>
+        </div>
+        
+        <div class="action">
+            Click <span class="button-ref">🎮 Start Demo Tour</span> to show the self-guided feature
+        </div>
+        
+        <div class="talking-point">
+            <strong>Key Points to Emphasize:</strong>
+            <ul>
+                <li>Real-time protection against AI agent mistakes</li>
+                <li>Complete audit trail for compliance</li>
+                <li>Customizable policies for your organization</li>
+                <li>Multi-stakeholder approval workflows</li>
+                <li>Zero-trust approach to AI agent activities</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🆘 Quick Fixes</h2>
+        
+        <div class="warning">
+            <strong>If nothing is loading:</strong><br>
+            Run in terminal: <code>docker-compose restart gateway</code>
+        </div>
+        
+        <div class="warning">
+            <strong>If you need sample data:</strong><br>
+            Click <span class="button-ref">🧪 Generate Demo Data</span> in the admin header
+        </div>
+        
+        <div class="warning">
+            <strong>If demo buttons aren't working:</strong><br>
+            Refresh the page (Cmd+R or Ctrl+R)
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📝 Demo Variations by Audience</h2>
+        
+        <h3>For Security Teams</h3>
+        <ul>
+            <li>Focus on: SQL injection prevention, PII protection, audit trails</li>
+            <li>Show: Security tab, threat monitoring, compliance reports</li>
+            <li>Emphasize: Zero-trust architecture, emergency overrides</li>
+        </ul>
+        
+        <h3>For Executives</h3>
+        <ul>
+            <li>Focus on: Risk mitigation, compliance automation</li>
+            <li>Show: High-level metrics, approval workflows</li>
+            <li>Emphasize: ROI from preventing data breaches</li>
+        </ul>
+        
+        <h3>For Developers</h3>
+        <ul>
+            <li>Focus on: API integration, customization options</li>
+            <li>Show: Policy configuration, MCP protocol support</li>
+            <li>Emphasize: Easy integration, no code changes needed</li>
+        </ul>
+    </div>
+
+    <div class="demo-section" style="background: #e8f4f8;">
+        <h2>✨ Pro Tips</h2>
+        <ul>
+            <li>Keep the demo under 10 minutes for maximum impact</li>
+            <li>Use real examples from their industry when possible</li>
+            <li>Let them click buttons if doing an interactive demo</li>
+            <li>Always end with "What governance challenges are you facing?"</li>
+            <li>Have the drill-down interface ready to show detailed analysis</li>
+        </ul>
+    </div>
+
+    <div style="text-align: center; margin-top: 40px; color: #666;">
+        <p>This guide available at: <strong>http://localhost:8080/demo</strong></p>
+        <p>Keep this open on a second screen or print for reference during demos</p>
+    </div>
+</body>
+</html>
