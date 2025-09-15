@@ -1771,7 +1771,7 @@
             // Create modal for time series chart
             const modal = document.createElement('div');
             modal.className = 'modal-overlay';
-            modal.innerHTML = \`
+            modal.innerHTML = `
                 <div class="modal-content" style="width: 80%; max-width: 1200px; height: 80%;">
                     <div class="modal-header">
                         <h2>📈 Activity Timeline - Real-time System Monitoring</h2>
@@ -1820,7 +1820,7 @@
                         </div>
                     </div>
                 </div>
-            \`;
+            `;
             document.body.appendChild(modal);
 
             // Initialize charts after modal is added to DOM
@@ -3274,10 +3274,10 @@
                 const currentRate = totalCounts[totalCounts.length - 1] || 0;
                 const alertRate = totalEvents > 0 ? ((alertEvents / totalEvents) * 100).toFixed(1) : '0.0';
 
-                document.getElementById('current-rate').textContent = \`\${currentRate} events/sec\`;
+                document.getElementById('current-rate').textContent = `${currentRate} events/sec`;
                 document.getElementById('total-events').textContent = totalEvents.toLocaleString();
                 document.getElementById('alert-events').textContent = alertEvents.toLocaleString();
-                document.getElementById('alert-rate').textContent = \`\${alertRate}%\`;
+                document.getElementById('alert-rate').textContent = `${alertRate}%`;
 
                 // Update recent alerts
                 const recentAlerts = events
@@ -3285,13 +3285,13 @@
                     .slice(0, 10);
 
                 const alertsHtml = recentAlerts.length > 0
-                    ? recentAlerts.map(alert => \`
+                    ? recentAlerts.map(alert => `
                         <div style="padding: 5px; border-left: 3px solid #ef4444; margin-bottom: 5px; background: white; border-radius: 3px;">
-                            <div style="font-weight: bold; color: #ef4444;">\${alert.severity.toUpperCase()}</div>
-                            <div style="color: #64748b; font-size: 11px;">\${new Date(alert.timestamp).toLocaleTimeString()}</div>
-                            <div style="margin-top: 3px;">\${alert.message.substring(0, 50)}...</div>
+                            <div style="font-weight: bold; color: #ef4444;">${alert.severity.toUpperCase()}</div>
+                            <div style="color: #64748b; font-size: 11px;">${new Date(alert.timestamp).toLocaleTimeString()}</div>
+                            <div style="margin-top: 3px;">${alert.message.substring(0, 50)}...</div>
                         </div>
-                    \`).join('')
+                    `).join('')
                     : '<div style="color: #64748b; text-align: center; padding: 20px;">No recent alerts</div>';
 
                 document.getElementById('recent-alerts').innerHTML = alertsHtml;
