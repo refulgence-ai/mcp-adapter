@@ -1198,61 +1198,149 @@
         // ===============================
         
         let demoTourStep = 0;
+        let demoTourActive = false;
         const demoTourSteps = [
             {
                 target: '.header',
                 title: '🛡️ Welcome to Refulgence!',
-                content: 'This is your AI Agent Security Gateway. Here you can monitor, govern, and control all AI agent activities with enterprise-grade security.',
-                position: 'bottom'
+                content: 'This is your AI Agent Security Gateway. Let\'s take a quick tour of the key features.',
+                position: 'bottom',
+                action: null
             },
             {
-                target: '.stats-grid',
-                title: '📊 Live Statistics',
-                content: 'Monitor real-time metrics including query rates, blocked attempts, approvals, and active agents.',
-                position: 'bottom'
-            },
-            {
-                target: '.tab-container',
-                title: '🎛️ Management Tabs',
-                content: 'Access different management areas: User Inspector, Policy Matrix, Workflows, Approvals, Server Management, and Security Center.',
-                position: 'bottom'
-            },
-            {
-                target: '[onclick="showTab(\'users\')"]',
-                title: '👥 User Management',
-                content: 'Inspect users, manage roles, and control access permissions. Click to see user inspector tools.',
-                position: 'bottom'
+                target: '.demo-controls',
+                title: '🧪 Demo Controls',
+                content: 'These buttons help you test and demonstrate the system. Let me generate some sample data.',
+                position: 'bottom',
+                action: () => {
+                    // Actually click the generate demo data button
+                    const btn = document.querySelector('[onclick="generateDemoData()"]');
+                    if (btn) btn.click();
+                }
             },
             {
                 target: '[onclick="showTab(\'policies\')"]',
                 title: '📋 Policy Matrix',
-                content: 'Interactive policy editor where you can define governance rules and approval workflows.',
-                position: 'bottom'
+                content: 'Let me show you the interactive policy matrix where you control governance rules.',
+                position: 'bottom',
+                action: () => {
+                    // Actually switch to policies tab
+                    showTab('policies');
+                }
+            },
+            {
+                target: '.demo-btn-success',
+                title: '⚖️ Load Demo Matrix',
+                content: 'I\'ll load a realistic enterprise policy configuration for you.',
+                position: 'top',
+                action: () => {
+                    // Actually load the demo matrix
+                    loadDemoMatrix();
+                }
+            },
+            {
+                target: '.matrix-table',
+                title: '🎯 Interactive Matrix',
+                content: 'Click any cell to change permissions. Notice how coding agents are restricted while security analysts have override capabilities.',
+                position: 'top',
+                action: null
+            },
+            {
+                target: '[onclick="showTab(\'users\')"]',
+                title: '👥 User Management',
+                content: 'Now let me show you user inspection capabilities.',
+                position: 'bottom',
+                action: () => {
+                    // Switch to users tab
+                    showTab('users');
+                }
+            },
+            {
+                target: '.demo-btn-info',
+                title: '👤 Load Demo Users',
+                content: 'I\'ll populate the system with realistic user data.',
+                position: 'top',
+                action: () => {
+                    // Load demo users
+                    loadDemoUsers();
+                }
+            },
+            {
+                target: '.demo-btn-warning',
+                title: '🔍 Test User Inspector',
+                content: 'Let me demonstrate user inspection capabilities.',
+                position: 'top',
+                action: () => {
+                    // Test user inspector
+                    testUserInspector();
+                }
+            },
+            {
+                target: '[onclick="showTab(\'overview\')"]',
+                title: '🏠 Back to Overview',
+                content: 'Let\'s return to the main dashboard to see everything in action.',
+                position: 'bottom',
+                action: () => {
+                    // Return to overview
+                    showTab('overview');
+                }
+            },
+            {
+                target: '.demo-controls',
+                title: '⚡ Live Governance Test',
+                content: 'Finally, let me demonstrate live governance by simulating a security event.',
+                position: 'bottom',
+                action: () => {
+                    // Simulate a governance event
+                    simulateGovernanceEvent();
+                }
             }
         ];
         
         function startDemoTour() {
             demoTourStep = 0;
-            showDemoStep();
+            demoTourActive = true;
+
+            // Make sure we start on overview tab
+            showTab('overview');
+
+            // Start the tour after a brief delay
+            setTimeout(() => {
+                showDemoStep();
+            }, 500);
         }
-        
+
         function showDemoStep() {
+            if (!demoTourActive) return;
+
             // Remove existing highlights
             document.querySelectorAll('.demo-highlight').forEach(el => {
                 el.classList.remove('demo-highlight');
             });
-            
+
             if (demoTourStep >= demoTourSteps.length) {
                 endDemoTour();
                 return;
             }
-            
+
             const step = demoTourSteps[demoTourStep];
             const targetElement = document.querySelector(step.target);
-            
+
             if (targetElement) {
                 targetElement.classList.add('demo-highlight');
                 showDemoPopup(step, targetElement);
+
+                // Execute the step's action after showing the popup
+                if (step.action && typeof step.action === 'function') {
+                    setTimeout(() => {
+                        if (demoTourActive) {
+                            step.action();
+                        }
+                    }, 1500); // Give time to read the popup
+                }
+            } else {
+                // If target not found, skip to next step
+                nextDemoStep();
             }
         }
         
@@ -1290,23 +1378,40 @@
         }
         
         function nextDemoStep() {
+            if (!demoTourActive) return;
             demoTourStep++;
-            showDemoStep();
+
+            // Add a small delay before showing next step
+            setTimeout(() => {
+                showDemoStep();
+            }, 300);
         }
-        
+
         function prevDemoStep() {
+            if (!demoTourActive) return;
             if (demoTourStep > 0) {
                 demoTourStep--;
-                showDemoStep();
+                setTimeout(() => {
+                    showDemoStep();
+                }, 300);
             }
         }
-        
+
         function endDemoTour() {
+            demoTourActive = false;
             document.getElementById('demo-tour-overlay').style.display = 'none';
             document.querySelectorAll('.demo-highlight').forEach(el => {
                 el.classList.remove('demo-highlight');
             });
-            alert('🎉 Demo tour completed! You\'re now ready to use Refulgence for AI agent governance.');
+
+            // Show completion message
+            setTimeout(() => {
+                alert('🎉 Interactive demo tour completed!\n\n✅ You\'ve seen:\n• Live data generation\n• Policy matrix configuration\n• User management tools\n• Governance event simulation\n\nThe system is now ready for your demo!');
+            }, 500);
+        }
+
+        function skipDemoTour() {
+            endDemoTour();
         }
         
         async function generateDemoData() {
@@ -1465,7 +1570,7 @@
             <div style="margin-top: 15px; text-align: center;">
                 <button onclick="prevDemoStep()" class="demo-btn demo-btn-info" id="demo-prev-btn">← Previous</button>
                 <button onclick="nextDemoStep()" class="demo-btn demo-btn-primary" id="demo-next-btn">Next →</button>
-                <button onclick="endDemoTour()" class="demo-btn demo-btn-danger">Skip Tour</button>
+                <button onclick="skipDemoTour()" class="demo-btn demo-btn-danger">Skip Tour</button>
             </div>
             <div style="margin-top: 10px; text-align: center; font-size: 0.9em; color: #666;">
                 Step <span id="demo-step-counter"></span>
