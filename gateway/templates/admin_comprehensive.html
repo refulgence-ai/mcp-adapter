@@ -1210,12 +1210,11 @@
             {
                 target: '.demo-controls',
                 title: '🧪 Demo Controls',
-                content: 'These buttons help you test and demonstrate the system. Let me generate some sample data.',
+                content: 'These buttons help you test and demonstrate the system. Let me generate some sample data. This will take a few seconds...',
                 position: 'bottom',
-                action: () => {
-                    // Actually click the generate demo data button
-                    const btn = document.querySelector('[onclick="generateDemoData()"]');
-                    if (btn) btn.click();
+                action: async () => {
+                    // Actually generate demo data and wait for completion
+                    await generateDemoData();
                 }
             },
             {
@@ -1233,9 +1232,9 @@
                 title: '⚖️ Load Demo Matrix',
                 content: 'I\'ll load a realistic enterprise policy configuration for you.',
                 position: 'top',
-                action: () => {
-                    // Actually load the demo matrix
-                    loadDemoMatrix();
+                action: async () => {
+                    // Actually load the demo matrix and wait
+                    await loadDemoMatrix();
                 }
             },
             {
@@ -1260,9 +1259,9 @@
                 title: '👤 Load Demo Users',
                 content: 'I\'ll populate the system with realistic user data.',
                 position: 'top',
-                action: () => {
-                    // Load demo users
-                    loadDemoUsers();
+                action: async () => {
+                    // Load demo users and wait
+                    await loadDemoUsers();
                 }
             },
             {
@@ -1270,9 +1269,9 @@
                 title: '🔍 Test User Inspector',
                 content: 'Let me demonstrate user inspection capabilities.',
                 position: 'top',
-                action: () => {
-                    // Test user inspector
-                    testUserInspector();
+                action: async () => {
+                    // Test user inspector and wait
+                    await testUserInspector();
                 }
             },
             {
@@ -1332,9 +1331,21 @@
 
                 // Execute the step's action after showing the popup
                 if (step.action && typeof step.action === 'function') {
-                    setTimeout(() => {
+                    setTimeout(async () => {
                         if (demoTourActive) {
-                            step.action();
+                            try {
+                                await step.action();
+                                // Wait a bit more after action completes before allowing next step
+                                setTimeout(() => {
+                                    // Update the popup to show action completed
+                                    if (demoTourActive) {
+                                        const contentEl = document.getElementById('demo-popup-content');
+                                        contentEl.textContent = step.content + ' ✅ Action completed! Click Next to continue.';
+                                    }
+                                }, 500);
+                            } catch (error) {
+                                console.log('Demo action error:', error);
+                            }
                         }
                     }, 1500); // Give time to read the popup
                 }
@@ -1423,32 +1434,42 @@
                 'Policy violation: PII access attempted without approval',
                 'Vote submitted: CISO approved high-risk operation'
             ];
-            
-            let i = 0;
-            const interval = setInterval(async () => {
-                if (i >= activities.length) {
-                    clearInterval(interval);
-                    alert('✅ Demo data generated successfully!\n\nRefresh the page to see simulated governance events in the activity feed.');
-                    return;
-                }
-                
-                // Simulate API call to create demo activity
-                try {
-                    await fetch('/admin/api/demo-activity', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            message: activities[i],
-                            severity: ['critical', 'warning', 'info'][Math.floor(Math.random() * 3)]
-                        })
-                    });
-                } catch (e) {
-                    // API might not exist - just show message
-                    console.log('Demo activity:', activities[i]);
-                }
-                
-                i++;
-            }, 1000);
+
+            return new Promise((resolve) => {
+                let i = 0;
+                const interval = setInterval(async () => {
+                    if (i >= activities.length) {
+                        clearInterval(interval);
+
+                        // Show different message when in demo tour vs manual
+                        if (demoTourActive) {
+                            console.log('✅ Demo data generated for tour');
+                        } else {
+                            alert('✅ Demo data generated successfully!\n\nRefresh the page to see simulated governance events in the activity feed.');
+                        }
+
+                        resolve();
+                        return;
+                    }
+
+                    // Simulate API call to create demo activity
+                    try {
+                        await fetch('/admin/api/demo-activity', {
+                            method: 'POST',
+                            headers: {'Content-Type': 'application/json'},
+                            body: JSON.stringify({
+                                message: activities[i],
+                                severity: ['critical', 'warning', 'info'][Math.floor(Math.random() * 3)]
+                            })
+                        });
+                    } catch (e) {
+                        // API might not exist - just show message
+                        console.log('Demo activity:', activities[i]);
+                    }
+
+                    i++;
+                }, 1000);
+            });
         }
         
         async function simulateGovernanceEvent() {
@@ -1507,21 +1528,40 @@
         function loadDemoUsers() {
             const demoUsers = [
                 'security_analyst_sarah - SECURITY_ANALYST role',
-                'coding_agent_alpha - CODING_AGENT role', 
+                'coding_agent_alpha - CODING_AGENT role',
                 'business_lead_mike - BUSINESS_LEAD role',
                 'it_admin_jane - IT_ADMIN role',
                 'ciso_executive - CISO role'
             ];
-            
-            alert(`👥 Loading Demo Users...\n\n${demoUsers.join('\n')}\n\n✅ Demo users loaded! Check the user table for details.`);
-            
-            // Could populate actual table here
-            console.log('Demo users loaded:', demoUsers);
+
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (demoTourActive) {
+                        console.log('👥 Demo users loaded for tour');
+                    } else {
+                        alert(`👥 Loading Demo Users...\n\n${demoUsers.join('\n')}\n\n✅ Demo users loaded! Check the user table for details.`);
+                    }
+
+                    // Could populate actual table here
+                    console.log('Demo users loaded:', demoUsers);
+                    resolve();
+                }, 1000);
+            });
         }
         
         function testUserInspector() {
             const testUser = 'security_analyst_sarah';
-            alert(`🔍 Testing User Inspector for: ${testUser}\n\n✅ Inspector Results:\n- Role: SECURITY_ANALYST\n- Permissions: 15 active\n- Last login: 2 hours ago\n- Risk level: LOW\n- Recent activities: 23 governance reviews`);
+
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (demoTourActive) {
+                        console.log('🔍 User inspector test completed for tour');
+                    } else {
+                        alert(`🔍 Testing User Inspector for: ${testUser}\n\n✅ Inspector Results:\n- Role: SECURITY_ANALYST\n- Permissions: 15 active\n- Last login: 2 hours ago\n- Risk level: LOW\n- Recent activities: 23 governance reviews`);
+                    }
+                    resolve();
+                }, 1000);
+            });
         }
         
         function simulateUserActivity() {
@@ -1538,10 +1578,19 @@
         
         // Policy Matrix Demo Functions
         function loadDemoMatrix() {
-            alert(`⚖️ Loading Demo Policy Matrix...\n\n✅ Demo Configuration Loaded:\n- Developers: Restricted database access\n- Coding Agents: Require approval for all ops\n- Security Team: Full override permissions\n- Business Users: Read-only data access\n\nMatrix is now active with realistic enterprise policies!`);
-            
-            // Could actually modify the matrix here
-            console.log('Demo policy matrix configuration loaded');
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    if (demoTourActive) {
+                        console.log('⚖️ Demo policy matrix loaded for tour');
+                    } else {
+                        alert(`⚖️ Loading Demo Policy Matrix...\n\n✅ Demo Configuration Loaded:\n- Developers: Restricted database access\n- Coding Agents: Require approval for all ops\n- Security Team: Full override permissions\n- Business Users: Read-only data access\n\nMatrix is now active with realistic enterprise policies!`);
+                    }
+
+                    // Could actually modify the matrix here
+                    console.log('Demo policy matrix configuration loaded');
+                    resolve();
+                }, 1500);
+            });
         }
         
         function testMatrixLogic() {
