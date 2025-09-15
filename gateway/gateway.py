@@ -772,6 +772,28 @@ async def dashboard(request):
                 border-radius: 10px;
                 margin-bottom: 30px;
                 text-align: center;
+                position: relative;
+            }}
+            .admin-link {{
+                position: absolute;
+                top: 20px;
+                right: 20px;
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                padding: 8px 16px;
+                border-radius: 6px;
+                text-decoration: none;
+                font-size: 14px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+            }}
+            .admin-link:hover {{
+                background: rgba(255, 255, 255, 0.3);
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+                text-decoration: none;
+                color: white;
             }}
             .server-card {{
                 background: white;
@@ -882,6 +904,7 @@ async def dashboard(request):
     </head>
     <body>
         <div class="header">
+            <a href="/admin" class="admin-link">🛡️ Admin Panel</a>
             <h1>🚀 MCP Adapter Dashboard</h1>
             <p>Aggregating tools from multiple backend MCP servers</p>
             <button class="refresh-btn" onclick="location.reload()">🔄 Refresh Dashboard</button>

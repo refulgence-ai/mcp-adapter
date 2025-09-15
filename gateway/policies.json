@@ -1017,8 +1017,78 @@
           "MEDIUM: Unrestricted SELECT * without LIMIT"
         ]
       }
+    },
+    {
+      "request_id": "vote_1757963331_9261",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:08:51.358578+00:00",
+      "expires_at": "2025-09-15T20:08:51.358580+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757963837_7941",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:17:17.327039+00:00",
+      "expires_at": "2025-09-15T20:17:17.327041+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
     }
   ],
   "approval_cache": {},
-  "last_updated": "2025-09-15T18:52:22.772685+00:00"
+  "last_updated": "2025-09-15T19:17:17.327134+00:00"
 }
