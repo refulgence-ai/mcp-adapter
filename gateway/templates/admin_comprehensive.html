@@ -1050,44 +1050,33 @@
             </div>
         </div>
         
-        <!-- Quick Actions -->
-        <div class="action-grid">
-            <div class="action-card" onclick="openUserInspector()">
-                <h3>👥 User Inspector</h3>
-                <p>View and manage user roles, permissions, and access patterns</p>
-                <button class="action-btn">Inspect Users</button>
-            </div>
-            
-            <div class="action-card" onclick="openCredentialManager()">
-                <h3>🔐 Credential Manager</h3>
-                <p>Manage API keys, tokens, and authentication credentials</p>
-                <button class="action-btn">Manage Credentials</button>
-            </div>
-            
-            <div class="action-card" onclick="openPolicyBuilder()">
-                <h3>📋 Policy Workshop</h3>
-                <p>Build, test, and deploy governance policies with visual workflow</p>
-                <button class="action-btn">Build Policies</button>
-            </div>
-            
-            <div class="action-card" onclick="openMatrixEditor()">
-                <h3>⚖️ Policy Matrix</h3>
-                <p>Configure approval matrix and permission hierarchies</p>
-                <button class="action-btn">Edit Matrix</button>
-            </div>
-            
-            <div class="action-card" onclick="openAuditExplorer()">
-                <h3>📊 Audit Explorer</h3>
-                <p>Deep analysis of governance decisions and compliance reporting</p>
-                <button class="action-btn">Explore Audits</button>
-            </div>
+        <!-- Navigation Guide -->
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; margin-bottom: 32px;">
+            <h3 style="margin-top: 0; color: #1e293b;">Welcome to Refulgence Admin</h3>
+            <p style="color: #64748b; margin-bottom: 20px;">Use the tabs above to navigate to different management areas. Each tab contains the full interface for that functional area.</p>
 
-            <div class="action-card" onclick="openActivityTimeSeries()">
-                <h3>📈 Activity Timeline</h3>
-                <p>Real-time visualization of system activity patterns and alert trends</p>
-                <button class="action-btn">View Timeline</button>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px;">
+                <div style="background: white; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #3b82f6;">👥 User Management</strong>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">Manage users, roles, and permissions</p>
+                </div>
+                <div style="background: white; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #3b82f6;">🤖 Agent Credentials</strong>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">Provision and manage AI agent access</p>
+                </div>
+                <div style="background: white; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #3b82f6;">⚖️ Policy Matrix</strong>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">Configure governance rules and approvals</p>
+                </div>
+                <div style="background: white; border-radius: 8px; padding: 16px; border: 1px solid #e2e8f0;">
+                    <strong style="color: #3b82f6;">Observability</strong>
+                    <p style="margin: 8px 0 0 0; font-size: 14px; color: #64748b;">Real-time monitoring and activity analytics</p>
+                </div>
             </div>
+        </div>
 
+        <!-- Emergency Actions -->
+        <div class="action-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
             <div class="action-card" onclick="openEmergencyCenter()">
                 <h3>🚨 Emergency Center</h3>
                 <p>Emergency controls, incident response, and crisis management</p>
@@ -1155,7 +1144,7 @@
                     </span>
                 </div>
                 <div class="tooltip">
-                    <button class="tab-button" onclick="showTab('observability')">🔍 Observability</button>
+                    <button class="tab-button" onclick="showTab('observability')">Observability</button>
                     <span class="tooltiptext">
                         <strong>Observability</strong><br/>
                         Real-time monitoring, activity analytics, and system insights. View activity timelines, performance metrics, and alert patterns.
@@ -1605,7 +1594,7 @@
             <!-- Observability Tab -->
             <div id="observability" class="tab-content">
                 <div class="card">
-                    <h3>🔍 System Observability</h3>
+                    <h3>System Observability</h3>
                     <p>Real-time monitoring and analytics for the governance system. Track activity patterns, performance metrics, and system health.</p>
 
                     <!-- Live Statistics Grid -->

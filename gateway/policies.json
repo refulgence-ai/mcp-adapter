@@ -1136,7 +1136,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:26:35.203814+00:00",
       "expires_at": "2025-09-15T20:26:35.203818+00:00",
       "current_request_context": {
@@ -1174,7 +1174,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:37:49.121920+00:00",
       "expires_at": "2025-09-15T20:37:49.121925+00:00",
       "current_request_context": {
@@ -1209,7 +1209,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:38:44.580655+00:00",
       "expires_at": "2025-09-15T20:38:44.580663+00:00",
       "current_request_context": {
@@ -1244,7 +1244,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:52:26.033742+00:00",
       "expires_at": "2025-09-15T20:52:26.033744+00:00",
       "current_request_context": {
@@ -1279,7 +1279,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:53:20.870631+00:00",
       "expires_at": "2025-09-15T20:53:20.870634+00:00",
       "current_request_context": {
@@ -1313,7 +1313,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:55:22.654521+00:00",
       "expires_at": "2025-09-15T20:55:22.654524+00:00",
       "current_request_context": {
@@ -1351,7 +1351,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T19:59:03.969880+00:00",
       "expires_at": "2025-09-15T20:59:03.969882+00:00",
       "current_request_context": {
@@ -1386,7 +1386,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T20:00:00.396387+00:00",
       "expires_at": "2025-09-15T21:00:00.396389+00:00",
       "current_request_context": {
@@ -1421,7 +1421,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T20:13:18.794871+00:00",
       "expires_at": "2025-09-15T21:13:18.794874+00:00",
       "current_request_context": {
@@ -1456,7 +1456,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T20:14:30.576369+00:00",
       "expires_at": "2025-09-15T21:14:30.576372+00:00",
       "current_request_context": {
@@ -1491,9 +1491,44 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T20:20:01.941275+00:00",
       "expires_at": "2025-09-15T21:20:01.941278+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757978622_1883",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T23:23:42.849156+00:00",
+      "expires_at": "2025-09-16T00:23:42.849159+00:00",
       "current_request_context": {
         "subject_type": "coding_agent",
         "subject_id": "test_user",
@@ -1514,5 +1549,5 @@
     }
   ],
   "approval_cache": {},
-  "last_updated": "2025-09-15T20:20:01.941414+00:00"
+  "last_updated": "2025-09-15T23:23:42.849299+00:00"
 }
