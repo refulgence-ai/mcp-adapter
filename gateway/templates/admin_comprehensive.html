@@ -12,10 +12,14 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            background: #f8fafc;
+            background-image:
+                radial-gradient(circle at 25% 25%, #f1f5f9 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #f1f5f9 0%, transparent 50%);
             min-height: 100vh;
-            color: #333;
+            color: #1e293b;
+            line-height: 1.6;
         }
         
         .container {
@@ -25,88 +29,215 @@
         }
         
         .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 32px;
+            margin-bottom: 32px;
             text-align: center;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            box-shadow:
+                0 1px 3px rgba(15, 23, 42, 0.08),
+                0 4px 16px rgba(15, 23, 42, 0.04);
         }
-        
+
         .header h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 10px;
+            font-size: 2.25rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+
+        .header h1::before {
+            content: "";
+            display: inline-block;
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            border-radius: 8px;
+            margin-right: 12px;
+            vertical-align: middle;
+            position: relative;
+            top: -2px;
+        }
+
+        .header p {
+            color: #64748b;
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            font-weight: 400;
         }
         
         .header-links {
-            margin-top: 15px;
+            margin-top: 24px;
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
-        
+
         .header-link {
-            display: inline-block;
-            background: #667eea;
-            color: white;
-            padding: 8px 16px;
+            display: inline-flex;
+            align-items: center;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 10px 16px;
             text-decoration: none;
-            border-radius: 4px;
-            font-weight: 600;
-            transition: all 0.3s;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            border: 1px solid #e2e8f0;
         }
-        
+
         .header-link:hover {
-            background: #5a6fd8;
-            transform: translateY(-2px);
+            background: #e2e8f0;
+            color: #334155;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
         }
         
+        /* Tooltip System */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #1a1a1a;
+            color: white;
+            text-align: left;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 13px;
+            line-height: 1.4;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #1a1a1a transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .help-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            background: #6c757d;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 11px;
+            line-height: 16px;
+            margin-left: 5px;
+            cursor: help;
+            font-weight: bold;
+        }
+
+        .help-icon:hover {
+            background: #495057;
+        }
+
         /* Demo Controls */
+        .demo-controls {
+            margin-top: 24px;
+            padding: 20px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .demo-controls-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
         .demo-btn {
             padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-weight: 500;
             cursor: pointer;
-            margin: 0 5px;
-            transition: all 0.3s ease;
-            font-size: 0.9em;
+            margin: 0 6px;
+            transition: all 0.2s ease;
+            font-size: 0.875rem;
+            background: white;
+            color: #475569;
         }
-        
-        .demo-btn-primary {
-            background: #28a745;
-            color: white;
-        }
-        
-        .demo-btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-        
-        .demo-btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-        
-        .demo-btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-        
-        .demo-btn-success {
-            background: #28a745;
-            color: white;
-        }
-        
+
         .demo-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+            border-color: #cbd5e1;
+        }
+
+        .demo-btn-primary {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
+
+        .demo-btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+        }
+
+        .demo-btn-secondary {
+            background: #64748b;
+            color: white;
+            border-color: #64748b;
+        }
+
+        .demo-btn-secondary:hover {
+            background: #475569;
+            border-color: #475569;
+        }
+
+        .demo-btn-warning {
+            background: #f59e0b;
+            color: white;
+            border-color: #f59e0b;
+        }
+
+        .demo-btn-warning:hover {
+            background: #d97706;
+            border-color: #d97706;
+        }
+
+        .demo-btn-danger {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .demo-btn-danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
         }
         
         /* Demo Tour Overlay */
@@ -139,35 +270,51 @@
         
         /* Tab Navigation */
         .tab-container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 32px;
+            box-shadow:
+                0 1px 3px rgba(15, 23, 42, 0.08),
+                0 4px 16px rgba(15, 23, 42, 0.04);
         }
-        
+
         .tab-nav {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 8px;
+            margin-bottom: 24px;
             overflow-x: auto;
+            padding: 4px;
+            background: #f1f5f9;
+            border-radius: 12px;
         }
-        
+
         .tab-button {
             padding: 12px 20px;
             border: none;
             border-radius: 8px;
-            background: #f8f9fa;
-            color: #666;
+            background: transparent;
+            color: #64748b;
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
+            font-weight: 500;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
             white-space: nowrap;
+            position: relative;
         }
-        
+
+        .tab-button:hover {
+            color: #334155;
+            background: rgba(255, 255, 255, 0.6);
+        }
+
         .tab-button.active {
-            background: #667eea;
-            color: white;
+            background: white;
+            color: #0f172a;
+            box-shadow:
+                0 1px 3px rgba(15, 23, 42, 0.12),
+                0 4px 12px rgba(15, 23, 42, 0.08);
         }
         
         .tab-content {
@@ -181,36 +328,55 @@
         /* Cards and Grids */
         .card {
             background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow:
+                0 1px 3px rgba(15, 23, 42, 0.08),
+                0 4px 16px rgba(15, 23, 42, 0.04);
         }
-        
+
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
         }
-        
+
         .stat-card {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
+            padding: 24px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
             text-align: center;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            box-shadow:
+                0 1px 3px rgba(15, 23, 42, 0.08),
+                0 4px 16px rgba(15, 23, 42, 0.04);
+            transition: all 0.2s ease;
         }
-        
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 4px 8px rgba(15, 23, 42, 0.12),
+                0 8px 24px rgba(15, 23, 42, 0.08);
+        }
+
         .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1;
+            margin-bottom: 8px;
         }
-        
+
         .stat-label {
-            color: #666;
-            margin-top: 5px;
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
         }
         
         /* Action Grid */
@@ -600,39 +766,76 @@
         }
         
         .btn-primary {
-            background: #667eea;
+            background: #3b82f6;
             color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        
-        .btn-primary:hover {
-            background: #5a6fd8;
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-            border: none;
+            border: 1px solid #3b82f6;
             padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: 600;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
             cursor: pointer;
-            margin-left: 10px;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
-        
+
+        .btn-primary:hover {
+            background: #2563eb;
+            border-color: #2563eb;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #64748b;
+            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-secondary:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.1);
+        }
+
         .btn-danger {
-            background: #dc3545;
+            background: #ef4444;
             color: white;
+            border: 1px solid #ef4444;
         }
-        
+
+        .btn-danger:hover {
+            background: #dc2626;
+            border-color: #dc2626;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
         .btn-success {
-            background: #28a745;
+            background: #10b981;
             color: white;
+            border: 1px solid #10b981;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+            border-color: #059669;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.8rem;
         }
         
         /* Modals */
@@ -705,38 +908,111 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🛡️ Refulgence Governance Center</h1>
-            <p>Complete AI Agent Security & Policy Management</p>
-            <div class="header-links">
-                <a href="/admin/drill-down" class="header-link">🔍 Activity Drill-Down</a>
-                <a href="/dashboard" class="header-link">📊 MCP Dashboard</a>
-                <a href="/sessions" class="header-link">🔗 Session Monitor</a>
+            <div class="tooltip">
+                <h1>Refulgence Governance Center</h1>
+                <span class="tooltiptext">
+                    <strong>Refulgence Governance Center</strong><br/>
+                    A comprehensive AI governance platform that controls and monitors AI agent access to sensitive data and operations. Think of it as a security control center for all AI interactions in your organization.
+                </span>
             </div>
-            <div class="demo-controls" style="margin-top: 15px; text-align: center;">
-                <button onclick="startDemoTour()" class="demo-btn demo-btn-primary">🎮 Start Demo Tour</button>
-                <button onclick="generateDemoData()" class="demo-btn demo-btn-warning">🧪 Generate Demo Data</button>
-                <button onclick="simulateGovernanceEvent()" class="demo-btn demo-btn-info">⚡ Simulate Event</button>
-                <button onclick="runSecurityTest()" class="demo-btn demo-btn-danger">🔒 Security Test</button>
+            <p>Enterprise AI Security & Policy Management Platform</p>
+            <div class="header-links">
+                <div class="tooltip">
+                    <a href="/admin/drill-down" class="header-link">Activity Analysis</a>
+                    <span class="tooltiptext">
+                        <strong>Activity Analysis</strong><br/>
+                        Detailed analysis view where you can explore specific governance events, trace decision paths, and investigate security incidents in depth.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <a href="/dashboard" class="header-link">System Dashboard</a>
+                    <span class="tooltiptext">
+                        <strong>System Dashboard</strong><br/>
+                        Model Context Protocol server status and tool availability. Shows which AI capabilities are currently active and accessible.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <a href="/sessions" class="header-link">Session Monitor</a>
+                    <span class="tooltiptext">
+                        <strong>Session Monitor</strong><br/>
+                        Real-time view of active AI agent sessions, connection pools, and system performance metrics.
+                    </span>
+                </div>
+            </div>
+            <div class="demo-controls">
+                <div class="demo-controls-label">Demo Environment Controls</div>
+                <div class="tooltip">
+                    <button onclick="startDemoTour()" class="demo-btn demo-btn-primary">Start Guided Tour</button>
+                    <span class="tooltiptext">
+                        <strong>Interactive Demo Tour</strong><br/>
+                        Guided walkthrough of all governance features with highlighted explanations. Perfect for first-time users and demonstrations.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button onclick="generateDemoData()" class="demo-btn demo-btn-warning">Generate Demo Data</button>
+                    <span class="tooltiptext">
+                        <strong>Generate Demo Data</strong><br/>
+                        Creates realistic sample data including users, activities, and approval requests. Refreshes the demo environment with new scenarios.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button onclick="simulateGovernanceEvent()" class="demo-btn demo-btn-secondary">Simulate Event</button>
+                    <span class="tooltiptext">
+                        <strong>Simulate Governance Event</strong><br/>
+                        Triggers a realistic governance scenario (like a policy violation or approval request) to demonstrate how the system responds to real-world events.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button onclick="runSecurityTest()" class="demo-btn demo-btn-danger">Security Test</button>
+                    <span class="tooltiptext">
+                        <strong>Security Test</strong><br/>
+                        Simulates security incidents and policy violations to demonstrate the system's protective capabilities and incident response workflows.
+                    </span>
+                </div>
             </div>
         </div>
         
         <!-- Stats Overview -->
         <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-number" id="pending-count">0</div>
-                <div class="stat-label">Pending Approvals</div>
+            <div class="tooltip">
+                <div class="stat-card">
+                    <div class="stat-number" id="pending-count">0</div>
+                    <div class="stat-label">Pending Approvals</div>
+                </div>
+                <span class="tooltiptext">
+                    <strong>Pending Approvals</strong><br/>
+                    Number of governance requests waiting for stakeholder review. When AI agents try to access restricted data or perform risky operations, human approval may be required.
+                </span>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="user-count">7</div>
-                <div class="stat-label">Active Users</div>
+            <div class="tooltip">
+                <div class="stat-card">
+                    <div class="stat-number" id="user-count">7</div>
+                    <div class="stat-label">Active Users</div>
+                </div>
+                <span class="tooltiptext">
+                    <strong>Active Users</strong><br/>
+                    Total number of human users and AI agents currently registered in the system. Includes administrators, developers, business users, and AI agents.
+                </span>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="policy-count">12</div>
-                <div class="stat-label">Active Policies</div>
+            <div class="tooltip">
+                <div class="stat-card">
+                    <div class="stat-number" id="policy-count">12</div>
+                    <div class="stat-label">Active Policies</div>
+                </div>
+                <span class="tooltiptext">
+                    <strong>Active Policies</strong><br/>
+                    Number of governance rules currently enforced. Policies define what actions are allowed, require approval, or are blocked entirely based on user role and data sensitivity.
+                </span>
             </div>
-            <div class="stat-card">
-                <div class="stat-number" id="server-count">0</div>
-                <div class="stat-label">Connected Servers</div>
+            <div class="tooltip">
+                <div class="stat-card">
+                    <div class="stat-number" id="server-count">0</div>
+                    <div class="stat-label">Connected Servers</div>
+                </div>
+                <span class="tooltiptext">
+                    <strong>Connected Servers</strong><br/>
+                    Number of backend MCP servers providing AI capabilities (like database access, file processing, etc.). These servers are protected by the governance layer.
+                </span>
             </div>
         </div>
         
@@ -782,20 +1058,74 @@
         <!-- Tab Navigation -->
         <div class="tab-container">
             <div class="tab-nav">
-                <button class="tab-button active" onclick="showTab('overview')">📊 Overview</button>
-                <button class="tab-button" onclick="showTab('users')">👥 User Management</button>
-                <button class="tab-button" onclick="showTab('agents')">🤖 Agent Credentials</button>
-                <button class="tab-button" onclick="showTab('policies')">📋 Policy Matrix</button>
-                <button class="tab-button" onclick="showTab('workflows')">🔄 Workflows</button>
-                <button class="tab-button" onclick="showTab('approvals')">⚖️ Approvals</button>
-                <button class="tab-button" onclick="showTab('servers')">🔗 Servers</button>
-                <button class="tab-button" onclick="showTab('security')">🔒 Security</button>
+                <div class="tooltip">
+                    <button class="tab-button active" onclick="showTab('overview')">Overview</button>
+                    <span class="tooltiptext">
+                        <strong>Overview</strong><br/>
+                        Main dashboard with governance testing tools and system statistics. Test policies here before deploying them.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('users')">User Management</button>
+                    <span class="tooltiptext">
+                        <strong>User Management</strong><br/>
+                        Manage human users and their permissions. View user activity, assign roles, and track access patterns.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('agents')">Agent Credentials</button>
+                    <span class="tooltiptext">
+                        <strong>Agent Credentials</strong><br/>
+                        Provision and manage AI agent access credentials. Each agent must be owned by a responsible human user with appropriate approvals.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('policies')">Policy Matrix</button>
+                    <span class="tooltiptext">
+                        <strong>Policy Matrix</strong><br/>
+                        Configure approval requirements and access rules. Define which operations require approval from different stakeholder groups.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('workflows')">Workflows</button>
+                    <span class="tooltiptext">
+                        <strong>Workflows</strong><br/>
+                        Automated governance processes that trigger when certain conditions are met. Examples: approval chains, security alerts, audit logging.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('approvals')">Approvals</button>
+                    <span class="tooltiptext">
+                        <strong>Approvals</strong><br/>
+                        Pending governance decisions requiring human review. Stakeholders can approve or deny requests from this interface.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('servers')">Servers</button>
+                    <span class="tooltiptext">
+                        <strong>Servers</strong><br/>
+                        Backend MCP servers providing AI capabilities. Monitor server health, connection status, and available tools.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('security')">Security</button>
+                    <span class="tooltiptext">
+                        <strong>Security</strong><br/>
+                        Security monitoring, incident response, and emergency controls. View threats, configure alerts, and manage crisis situations.
+                    </span>
+                </div>
             </div>
             
             <!-- Overview Tab -->
             <div id="overview" class="tab-content active">
                 <div class="card">
-                    <h3>🧪 Governance Testing Center</h3>
+                    <div class="tooltip">
+                        <h3>Governance Testing Center</h3>
+                        <span class="tooltiptext">
+                            <strong>Governance Testing Center</strong><br/>
+                            Test governance policies against specific queries and scenarios before deploying them to production. This helps ensure policies work as expected.
+                        </span>
+                    </div>
                     <div class="form-group">
                         <label>Test SQL Query:</label>
                         <textarea id="test-query" rows="3" placeholder="SELECT * FROM customers WHERE country = 'USA';">SELECT * FROM customers WHERE ssn IS NOT NULL;</textarea>
@@ -804,27 +1134,55 @@
                         <label>Subject Type:</label>
                         <select id="test-subject">
                             <option value="developer">Developer</option>
-                            <option value="coding_agent">Coding Agent</option>
+                            <option value="coding_agent">AI Agent</option>
                         </select>
                     </div>
-                    <button class="btn-primary" onclick="testGovernance()">🧪 Test Governance</button>
-                    <button class="btn-secondary" onclick="saveAsPolicy()">💾 Save as Policy</button>
-                    <div id="test-result" style="margin-top: 15px;"></div>
+                    <div style="display: flex; gap: 12px; align-items: center;">
+                        <button class="btn-primary" onclick="testGovernance()">Test Governance</button>
+                        <button class="btn-secondary" onclick="saveAsPolicy()">Save as Policy</button>
+                    </div>
+                    <div id="test-result" style="margin-top: 20px; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; display: none;">
+                        <h4 style="margin: 0 0 8px 0; color: #374151; font-size: 0.875rem;">Test Results</h4>
+                        <div style="font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace; font-size: 0.8rem; color: #6b7280;"></div>
+                    </div>
                 </div>
             </div>
             
             <!-- User Management Tab -->
             <div id="users" class="tab-content">
                 <div class="card">
-                    <h3>👥 User Inspector & Role Management</h3>
-                    <button class="btn-primary" onclick="addUser()" style="margin-bottom: 15px;">➕ Add User</button>
-                    <button class="btn-secondary" onclick="importUsers()">📥 Import Users</button>
-                    <button class="btn-secondary" onclick="exportUsers()">📤 Export Users</button>
-                    <div style="margin: 15px 0; padding: 10px; background: #f8f9fa; border-radius: 6px; border-left: 4px solid #17a2b8;">
-                        <strong>🧪 Demo & Testing:</strong>
-                        <button class="demo-btn demo-btn-info" onclick="loadDemoUsers()" style="margin-left: 10px;">Load Demo Users</button>
-                        <button class="demo-btn demo-btn-warning" onclick="testUserInspector()" style="margin-left: 5px;">Test Inspector</button>
-                        <button class="demo-btn demo-btn-primary" onclick="simulateUserActivity()" style="margin-left: 5px;">Simulate Activity</button>
+                    <div class="tooltip">
+                        <h3>User Inspector & Role Management</h3>
+                        <span class="tooltiptext">
+                            <strong>User Management</strong><br/>
+                            Manage all human users and their permissions. In demo mode, realistic users are automatically simulated. In production mode, manage actual organizational users.
+                        </span>
+                    </div>
+                    <div class="action-bar" style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+                        <div class="tooltip">
+                            <button class="btn-primary" onclick="addUser()">Add User</button>
+                            <span class="tooltiptext">
+                                <strong>Add New User</strong><br/>
+                                Create a new user account with appropriate role and permissions. Only available in production mode.
+                            </span>
+                        </div>
+                        <div class="tooltip">
+                            <button class="btn-secondary" onclick="importUsers()">Import Users</button>
+                            <span class="tooltiptext">
+                                <strong>Import Users</strong><br/>
+                                Bulk import users from CSV or integration with identity providers (LDAP, Azure AD, etc.).
+                            </span>
+                        </div>
+                        <div class="tooltip">
+                            <button class="btn-secondary" onclick="exportUsers()">Export Users</button>
+                            <span class="tooltiptext">
+                                <strong>Export Users</strong><br/>
+                                Download user list and activity reports for compliance auditing and backup purposes.
+                            </span>
+                        </div>
+                        <div class="demo-mode-indicator" style="margin-left: auto; padding: 6px 12px; background: #e3f2fd; border-radius: 4px; font-size: 0.9em; color: #1565c0;">
+                            <span id="mode-indicator">Demo Mode Active - Simulated Users</span>
+                        </div>
                     </div>
                     
                     <table class="user-table">
@@ -846,8 +1204,8 @@
                                 <td>Full Access</td>
                                 <td>2 min ago</td>
                                 <td>
-                                    <button class="btn-primary" onclick="inspectUser('ciso_001')">🔍 Inspect</button>
-                                    <button class="btn-secondary" onclick="editUser('ciso_001')">✏️ Edit</button>
+                                    <button class="btn-primary btn-sm" onclick="inspectUser('ciso_001')">Inspect</button>
+                                    <button class="btn-secondary btn-sm" onclick="editUser('ciso_001')">Edit</button>
                                 </td>
                             </tr>
                             <tr>
@@ -857,8 +1215,8 @@
                                 <td>Query Execution, Read Access</td>
                                 <td>15 min ago</td>
                                 <td>
-                                    <button class="btn-primary" onclick="inspectUser('dev_023')">🔍 Inspect</button>
-                                    <button class="btn-secondary" onclick="editUser('dev_023')">✏️ Edit</button>
+                                    <button class="btn-primary btn-sm" onclick="inspectUser('dev_023')">Inspect</button>
+                                    <button class="btn-secondary btn-sm" onclick="editUser('dev_023')">Edit</button>
                                 </td>
                             </tr>
                             <tr>
@@ -868,8 +1226,8 @@
                                 <td>Restricted Access</td>
                                 <td>Active</td>
                                 <td>
-                                    <button class="btn-primary" onclick="inspectUser('agent_ai_001')">🔍 Inspect</button>
-                                    <button class="btn-danger" onclick="suspendUser('agent_ai_001')">⏸️ Suspend</button>
+                                    <button class="btn-primary btn-sm" onclick="inspectUser('agent_ai_001')">Inspect</button>
+                                    <button class="btn-danger btn-sm" onclick="suspendUser('agent_ai_001')">Suspend</button>
                                 </td>
                             </tr>
                         </tbody>

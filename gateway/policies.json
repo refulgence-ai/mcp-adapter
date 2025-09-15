@@ -957,7 +957,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T18:52:20.976253+00:00",
       "expires_at": "2025-09-15T19:52:20.976258+00:00",
       "current_request_context": {
@@ -994,7 +994,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T18:52:22.772320+00:00",
       "expires_at": "2025-09-15T19:52:22.772333+00:00",
       "current_request_context": {
@@ -1194,8 +1194,78 @@
           "HIGH: Schema object deletion"
         ]
       }
+    },
+    {
+      "request_id": "vote_1757965124_9886",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:38:44.580655+00:00",
+      "expires_at": "2025-09-15T20:38:44.580663+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757965946_7591",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:52:26.033742+00:00",
+      "expires_at": "2025-09-15T20:52:26.033744+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
     }
   ],
   "approval_cache": {},
-  "last_updated": "2025-09-15T19:37:49.122181+00:00"
+  "last_updated": "2025-09-15T19:52:26.033858+00:00"
 }
