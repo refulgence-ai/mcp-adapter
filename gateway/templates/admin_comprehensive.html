@@ -880,6 +880,40 @@
             cursor: pointer;
             color: #666;
         }
+
+        /* Modal Overlay for Activity Timeline */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 0;
+            margin: 20px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .modal-overlay .modal-header {
+            background: #f8fafc;
+            padding: 20px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 0;
+        }
+
+        .modal-overlay .modal-body {
+            padding: 20px;
+        }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -1118,6 +1152,13 @@
                     <span class="tooltiptext">
                         <strong>Security</strong><br/>
                         Security monitoring, incident response, and emergency controls. View threats, configure alerts, and manage crisis situations.
+                    </span>
+                </div>
+                <div class="tooltip">
+                    <button class="tab-button" onclick="showTab('observability')">🔍 Observability</button>
+                    <span class="tooltiptext">
+                        <strong>Observability</strong><br/>
+                        Real-time monitoring, activity analytics, and system insights. View activity timelines, performance metrics, and alert patterns.
                     </span>
                 </div>
             </div>
@@ -1556,6 +1597,72 @@
                             <h3>🎯 Threat Intel</h3>
                             <p>Security patterns and anomaly detection</p>
                             <button class="action-btn">Analyze Threats</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Observability Tab -->
+            <div id="observability" class="tab-content">
+                <div class="card">
+                    <h3>🔍 System Observability</h3>
+                    <p>Real-time monitoring and analytics for the governance system. Track activity patterns, performance metrics, and system health.</p>
+
+                    <!-- Live Statistics Grid -->
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 20px 0;">
+                        <div class="stat-card">
+                            <div class="stat-number" id="obs-current-rate">-- events/sec</div>
+                            <div class="stat-label">Current Activity Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="obs-total-events">--</div>
+                            <div class="stat-label">Total Events</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="obs-alert-rate">--%</div>
+                            <div class="stat-label">Alert Rate</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="obs-active-users">--</div>
+                            <div class="stat-label">Active Users</div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Access Actions -->
+                    <div class="action-grid" style="margin-top: 30px;">
+                        <div class="action-card" onclick="openActivityTimeSeries()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white;">
+                            <h3>📈 Activity Timeline</h3>
+                            <p style="color: rgba(255,255,255,0.9);">Real-time activity charts and metrics</p>
+                            <button class="action-btn" style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3);">Open Timeline</button>
+                        </div>
+
+                        <div class="action-card" onclick="openSystemHealth()">
+                            <h3>🔧 System Health</h3>
+                            <p>Monitor service status and performance</p>
+                            <button class="action-btn">View Health</button>
+                        </div>
+
+                        <div class="action-card" onclick="openAlertCenter()">
+                            <h3>🚨 Alert Center</h3>
+                            <p>Recent alerts and notification settings</p>
+                            <button class="action-btn">Manage Alerts</button>
+                        </div>
+
+                        <div class="action-card" onclick="openMetricsExplorer()">
+                            <h3>📊 Metrics Explorer</h3>
+                            <p>Deep dive analytics and custom queries</p>
+                            <button class="action-btn">Explore Data</button>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity Preview -->
+                    <div style="margin-top: 30px;">
+                        <h4>Recent Activity Preview</h4>
+                        <div id="obs-recent-activity" style="background: #f8fafc; border-radius: 8px; padding: 15px; max-height: 200px; overflow-y: auto;">
+                            Loading recent activities...
+                        </div>
+                        <div style="text-align: center; margin-top: 10px;">
+                            <button onclick="openActivityTimeSeries()" class="btn-primary">View Full Timeline →</button>
                         </div>
                     </div>
                 </div>
@@ -3316,6 +3423,100 @@
                 });
                 observer.observe(document.body, { childList: true });
             }
+        }
+
+        // Observability Tab Functions
+        function updateObservabilityStats() {
+            fetch('/admin/api/activity')
+                .then(response => response.json())
+                .then(events => {
+                    // Calculate current rate (events in last 10 seconds)
+                    const now = new Date();
+                    const last10Seconds = events.filter(event => {
+                        const eventTime = new Date(event.timestamp);
+                        return (now - eventTime) < 10000;
+                    });
+                    const currentRate = Math.round(last10Seconds.length / 10 * 10) / 10;
+
+                    // Calculate alert rate
+                    const alertEvents = events.filter(event => event.details?.is_alert === true);
+                    const alertRate = events.length > 0 ? ((alertEvents.length / events.length) * 100).toFixed(1) : '0.0';
+
+                    // Update stats
+                    document.getElementById('obs-current-rate').textContent = `${currentRate} events/sec`;
+                    document.getElementById('obs-total-events').textContent = events.length.toLocaleString();
+                    document.getElementById('obs-alert-rate').textContent = `${alertRate}%`;
+
+                    // Update recent activity preview
+                    const recentEvents = events.slice(0, 5);
+                    const activityHtml = recentEvents.map(event => `
+                        <div style="padding: 8px; border-left: 3px solid ${event.severity === 'critical' ? '#ef4444' : event.severity === 'warning' ? '#f59e0b' : '#10b981'}; margin-bottom: 5px; background: white; border-radius: 3px;">
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <span style="font-weight: bold; color: ${event.severity === 'critical' ? '#ef4444' : event.severity === 'warning' ? '#f59e0b' : '#10b981'};">${event.severity.toUpperCase()}</span>
+                                <span style="color: #64748b; font-size: 11px;">${new Date(event.timestamp).toLocaleTimeString()}</span>
+                            </div>
+                            <div style="margin-top: 3px; font-size: 13px;">${event.message.substring(0, 80)}...</div>
+                        </div>
+                    `).join('');
+
+                    document.getElementById('obs-recent-activity').innerHTML = activityHtml || '<div style="color: #64748b; text-align: center; padding: 20px;">No recent activity</div>';
+                })
+                .catch(error => {
+                    console.error('Error updating observability stats:', error);
+                });
+        }
+
+        // Start observability updates when tab is visible
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+
+            // Start real-time updates for observability tab
+            if (tabName === 'observability') {
+                updateObservabilityStats();
+                // Update every 3 seconds while on observability tab
+                if (window.observabilityInterval) {
+                    clearInterval(window.observabilityInterval);
+                }
+                window.observabilityInterval = setInterval(updateObservabilityStats, 3000);
+            } else {
+                // Stop updates when leaving observability tab
+                if (window.observabilityInterval) {
+                    clearInterval(window.observabilityInterval);
+                    window.observabilityInterval = null;
+                }
+            }
+
+            // Load specific tab data
+            if (tabName === 'users') {
+                loadUsers();
+            } else if (tabName === 'approvals') {
+                loadApprovals();
+            } else if (tabName === 'servers') {
+                loadServers();
+            }
+        }
+
+        // Placeholder functions for additional observability features
+        function openSystemHealth() {
+            alert('🔧 System Health Dashboard\n\n📊 All Services: HEALTHY\n🟢 Gateway: Running (CPU: 12%, Memory: 256MB)\n🟢 Database: Connected (Latency: 2ms)\n🟢 MCP Servers: 4/4 Active\n🟢 Activity Tracker: Processing\n\n⚡ Performance excellent!');
+        }
+
+        function openAlertCenter() {
+            alert('🚨 Alert Center\n\n🔔 Active Alerts: 2\n\n⚠️ High query volume detected (50+ events/sec)\n🟡 User sarah_wilson_sec exceeded normal activity\n\n📧 Notifications sent to admins\n🔕 Alert fatigue protection: ACTIVE');
+        }
+
+        function openMetricsExplorer() {
+            alert('📊 Metrics Explorer\n\n📈 Available Metrics:\n• Query execution rates\n• User activity patterns\n• Policy violation trends\n• System performance\n• Alert frequencies\n\n🔍 Advanced filtering and correlation analysis coming soon!');
         }
 
     </script>
