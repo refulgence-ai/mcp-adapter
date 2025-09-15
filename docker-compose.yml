@@ -8,6 +8,7 @@ services:
     environment:
       - LOG_LEVEL=${LOG_LEVEL:-INFO}
       - DEBUG=${DEBUG:-false}
+      - REFULGENCE_DEMO_MODE=${REFULGENCE_DEMO_MODE:-true}
     depends_on:
       - hello-world
       - latex-server

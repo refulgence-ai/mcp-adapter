@@ -46,6 +46,7 @@ graph TD
 - **Tool Aggregation**: Exposes 7 tools (3 from hello-world + 4 from latex-server) as a unified MCP interface
 - **Session Management**: Full MCP protocol support with session pools for backend connections
 - **Docker Composition**: All services run in isolated containers with service mesh networking
+- **User Data Management**: Robust user storage with demo/real mode for simulated traffic and actual user management
 
 ### MCP Servers (All Built with FastMCP 2.0)
 - **Gateway**: MCP server exposing aggregated tools from backends
@@ -159,6 +160,128 @@ This is required because:
 - Set environment variables in `.env` file
 - Key variables: `LOG_LEVEL`, `DEBUG`, `SERVER_PORT`
 - LaTeX server: `LATEX_COMPILER`, `LATEX_TIMEOUT`, `MAX_FILE_SIZE`
+- Refulgence demo mode: `REFULGENCE_DEMO_MODE` (true/false)
+
+## User Data Storage System
+
+The project includes a sophisticated user data storage and simulation system designed for both demonstration and production use.
+
+### Demo vs Real Mode Configuration
+
+```bash
+# Demo mode (default) - simulated users and traffic
+REFULGENCE_DEMO_MODE=true
+
+# Real mode - actual user management
+REFULGENCE_DEMO_MODE=false
+```
+
+### User Data Store Architecture
+
+**Key Components**:
+- **UserDataStore**: Singleton class managing user storage and simulation
+- **User Entity**: Comprehensive user model with roles, permissions, activity tracking
+- **Traffic Simulation**: Background simulation of realistic user activity patterns
+- **API Endpoints**: Full REST API for user management operations
+
+**User Model**:
+```python
+@dataclass
+class User:
+    id: str
+    name: str
+    email: str
+    role: UserRole  # admin, security, business, user, agent, ciso, it_admin
+    status: UserStatus  # active, inactive, suspended, pending
+    permissions: PermissionLevel  # read_only, monitor_review, execute_approve, admin_full
+    created_at: datetime
+    last_active: datetime
+    total_queries: int
+    approved_queries: int
+    blocked_queries: int
+    risk_score: float
+    department: str
+    access_patterns: Dict[str, Any]
+```
+
+### Demo Mode Features
+
+**Realistic Demo Users** (7 pre-configured users):
+- Sarah Wilson (Security Analyst)
+- Mike Chen (Admin)
+- Emma Rodriguez (Business Lead)
+- David Kim (User)
+- Alex Thompson (Agent)
+- Jennifer Park (CISO)
+- Tom Watson (Inactive User)
+
+**Traffic Simulation**:
+- Background simulation of user queries and activity
+- Role-based activity patterns (security teams vs business users)
+- Peak hour simulation based on department
+- Risk-based query blocking simulation
+- Real-time activity feed integration
+
+**Activity Patterns**:
+- Frequent tools based on user role
+- Peak usage hours by department
+- Query type distributions
+- Approval/blocking rates
+- Risk score evolution
+
+### User Management API Endpoints
+
+```bash
+# Get all users (with optional search/filters)
+GET /admin/api/users
+GET /admin/api/users?search=sarah&role=security&status=active
+
+# Get specific user
+GET /admin/api/users/{user_id}
+
+# Create user (real mode only)
+POST /admin/api/users
+
+# Update user
+PUT /admin/api/users/{user_id}
+
+# Delete user (real mode only)
+DELETE /admin/api/users/{user_id}
+
+# Get aggregate statistics
+GET /admin/api/user-stats
+
+# Reset demo data (demo mode only)
+POST /admin/api/demo/reset
+```
+
+### Admin UI Integration
+
+The admin interface automatically loads users from the backend API:
+- **Load Demo Users** button fetches real user data from the API
+- Dynamic role badge styling based on backend user roles
+- Real-time user statistics and activity tracking
+- Proper formatting of timestamps and user attributes
+- Error handling for API failures
+
+### Testing Strategy
+
+**Comprehensive Test Coverage**:
+- **test_user_data_store.py**: Unit tests for UserDataStore class
+- **test_user_api_endpoints.py**: API endpoint integration tests
+- Demo mode vs real mode behavior testing
+- User simulation and activity tracking tests
+- Error handling and edge case coverage
+
+**Test Execution**:
+```bash
+# Run user data tests
+cd /Users/steven/code/re-mcp-adapter/tests && uv run pytest test_user_data_store.py -v
+cd /Users/steven/code/re-mcp-adapter/tests && uv run pytest test_user_api_endpoints.py -v
+
+# Run with demo mode environment
+REFULGENCE_DEMO_MODE=true uv run pytest test_user_data_store.py
+```
 
 ## Technical Details
 

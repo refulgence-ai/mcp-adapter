@@ -287,16 +287,12 @@
             font-size: 0.8em;
             font-weight: 600;
         }
-        
-        .role-admin {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .role-user {
-            background: #d4edda;
-            color: #155724;
-        }
+
+        .role-admin { background: #dc3545; color: white; }
+        .role-security { background: #fd7e14; color: white; }
+        .role-user { background: #6c757d; color: white; }
+        .role-agent { background: #6f42c1; color: white; }
+        .role-business { background: #20c997; color: white; }
         
         .role-guest {
             background: #fff3cd;
@@ -1185,7 +1181,13 @@
         document.addEventListener('DOMContentLoaded', () => {
             loadStats();
             loadServers();
-            
+
+            // Load users on page load if user management tab is visible
+            const userTab = document.querySelector('button[data-tab="user-management"]');
+            if (userTab && !userTab.classList.contains('hidden')) {
+                loadDemoUsers();
+            }
+
             // Auto-refresh every 30 seconds
             setInterval(() => {
                 loadStats();
@@ -1525,27 +1527,142 @@
         // ===============================
         
         // User Management Demo Functions
-        function loadDemoUsers() {
-            const demoUsers = [
-                'security_analyst_sarah - SECURITY_ANALYST role',
-                'coding_agent_alpha - CODING_AGENT role',
-                'business_lead_mike - BUSINESS_LEAD role',
-                'it_admin_jane - IT_ADMIN role',
-                'ciso_executive - CISO role'
-            ];
+        async function loadDemoUsers() {
+            return new Promise(async (resolve) => {
+                const usersList = document.getElementById('users-list');
+                if (!usersList) {
+                    console.error('Users list element not found');
+                    resolve();
+                    return;
+                }
 
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    if (demoTourActive) {
-                        console.log('👥 Demo users loaded for tour');
-                    } else {
-                        alert(`👥 Loading Demo Users...\n\n${demoUsers.join('\n')}\n\n✅ Demo users loaded! Check the user table for details.`);
+                try {
+                    // Fetch users from backend API
+                    const response = await fetch('/admin/api/users');
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
 
-                    // Could populate actual table here
-                    console.log('Demo users loaded:', demoUsers);
+                    const data = await response.json();
+                    const users = data.users || [];
+
+                    // Clear existing users
+                    usersList.innerHTML = '';
+
+                    if (users.length === 0) {
+                        const emptyRow = document.createElement('tr');
+                        emptyRow.innerHTML = '<td colspan="6" style="text-align: center; font-style: italic; color: #666;">No users found</td>';
+                        usersList.appendChild(emptyRow);
+                        resolve();
+                        return;
+                    }
+
+                    // Helper function to format role class
+                    const getRoleClass = (role) => {
+                        const roleMap = {
+                            'security': 'role-security',
+                            'admin': 'role-admin',
+                            'business': 'role-business',
+                            'user': 'role-user',
+                            'agent': 'role-agent',
+                            'ciso': 'role-security',
+                            'it_admin': 'role-admin'
+                        };
+                        return roleMap[role] || 'role-user';
+                    };
+
+                    // Helper function to format permission display
+                    const getPermissionDisplay = (permission) => {
+                        const permMap = {
+                            'read_only': 'Read Only',
+                            'monitor_review': 'Monitor & Review',
+                            'execute_approve': 'Execute & Approve',
+                            'admin_full': 'Full Admin'
+                        };
+                        return permMap[permission] || permission;
+                    };
+
+                    // Helper function to format last active time
+                    const formatLastActive = (timestamp) => {
+                        try {
+                            const date = new Date(timestamp);
+                            const now = new Date();
+                            const diffMs = now - date;
+                            const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+                            const diffMins = Math.floor(diffMs / (1000 * 60));
+
+                            if (diffMins < 60) {
+                                return `${diffMins} min ago`;
+                            } else if (diffHours < 24) {
+                                return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+                            } else {
+                                const diffDays = Math.floor(diffHours / 24);
+                                return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+                            }
+                        } catch (e) {
+                            return 'Unknown';
+                        }
+                    };
+
+                    // Add users one by one with animation
+                    let index = 0;
+                    const addNextUser = () => {
+                        if (index >= users.length) {
+                            if (demoTourActive) {
+                                console.log('👥 Demo users loaded for tour');
+                            } else {
+                                alert(`✅ Users loaded from backend!\n\n${users.length} users displayed.\nDemo mode: ${data.demo_mode ? 'ON' : 'OFF'}`);
+                            }
+                            resolve();
+                            return;
+                        }
+
+                        const user = users[index];
+                        const row = document.createElement('tr');
+                        row.style.backgroundColor = '#f0f8ff';
+                        row.style.transition = 'background-color 2s ease';
+
+                        // Format role for display
+                        const roleDisplay = user.role.replace('_', ' ').split(' ')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+
+                        row.innerHTML = `
+                            <td>${user.id}</td>
+                            <td>${user.name}</td>
+                            <td><span class="user-role-badge ${getRoleClass(user.role)}">${roleDisplay}</span></td>
+                            <td>${getPermissionDisplay(user.permissions)}</td>
+                            <td>${formatLastActive(user.last_active)}</td>
+                            <td>
+                                <button class="btn-primary" onclick="inspectUser('${user.id}')">🔍 Inspect</button>
+                                <button class="btn-secondary" onclick="editUser('${user.id}')">✏️ Edit</button>
+                            </td>
+                        `;
+
+                        usersList.appendChild(row);
+
+                        // Animate background color back to normal
+                        setTimeout(() => {
+                            row.style.backgroundColor = '';
+                        }, 500);
+
+                        index++;
+                        setTimeout(addNextUser, 200); // Add next user after 200ms
+                    };
+
+                    addNextUser();
+
+                } catch (error) {
+                    console.error('Error loading users:', error);
+                    const errorRow = document.createElement('tr');
+                    errorRow.innerHTML = `<td colspan="6" style="text-align: center; color: red;">Error loading users: ${error.message}</td>`;
+                    usersList.appendChild(errorRow);
+
+                    if (!demoTourActive) {
+                        alert(`❌ Error loading users: ${error.message}`);
+                    }
                     resolve();
-                }, 1000);
+                }
             });
         }
         

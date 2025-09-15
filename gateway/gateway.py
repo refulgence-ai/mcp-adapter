@@ -40,6 +40,9 @@ from activity_tracker import (
     track_vote_decision, track_security_event, track_agent_lifecycle
 )
 
+# Import user data store
+from user_data_store import user_store, User, UserRole, UserStatus, PermissionLevel
+
 # Configure logging
 logging.basicConfig(
     level=getattr(logging, os.getenv('LOG_LEVEL', 'INFO')),
@@ -1346,6 +1349,160 @@ async def oauth_protected_resource(request):
         "resource_documentation": f"{base_url}/dashboard"
     })
 
+# User Management API Endpoints
+@mcp.custom_route(path="/admin/api/users", methods=["GET"])
+async def get_users(request):
+    """Get all users with optional filtering and search"""
+    try:
+        query_params = dict(request.query_params)
+        search = query_params.get("search", "")
+        role_filter = query_params.get("role")
+        status_filter = query_params.get("status")
+        department_filter = query_params.get("department")
+
+        if search:
+            # Search users
+            filters = {}
+            if role_filter:
+                filters["role"] = role_filter
+            if status_filter:
+                filters["status"] = status_filter
+            if department_filter:
+                filters["department"] = department_filter
+
+            users = await user_store.search_users(search, filters)
+        else:
+            # Get all users
+            users = await user_store.get_all_users()
+
+            # Apply filters
+            if role_filter:
+                users = [u for u in users if u.role.value == role_filter]
+            if status_filter:
+                users = [u for u in users if u.status.value == status_filter]
+            if department_filter:
+                users = [u for u in users if u.department == department_filter]
+
+        # Convert to dictionaries for JSON response
+        users_data = [user.to_dict() for user in users]
+
+        return JSONResponse({
+            "users": users_data,
+            "total": len(users_data),
+            "demo_mode": user_store.get_demo_mode()
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting users: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/users/{user_id}", methods=["GET"])
+async def get_user(request):
+    """Get specific user by ID"""
+    try:
+        user_id = request.path_params["user_id"]
+        user = await user_store.get_user(user_id)
+
+        if not user:
+            return JSONResponse({"error": "User not found"}, status_code=404)
+
+        return JSONResponse({
+            "user": user.to_dict(),
+            "demo_mode": user_store.get_demo_mode()
+        })
+
+    except Exception as e:
+        logger.error(f"Error getting user: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/users", methods=["POST"])
+async def create_user(request):
+    """Create new user (real mode only)"""
+    try:
+        if user_store.get_demo_mode():
+            return JSONResponse({"error": "Cannot create users in demo mode"}, status_code=400)
+
+        user_data = await request.json()
+        user = await user_store.create_user(user_data)
+
+        return JSONResponse({
+            "user": user.to_dict(),
+            "message": "User created successfully"
+        })
+
+    except Exception as e:
+        logger.error(f"Error creating user: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/users/{user_id}", methods=["PUT"])
+async def update_user(request):
+    """Update user data"""
+    try:
+        user_id = request.path_params["user_id"]
+        updates = await request.json()
+
+        user = await user_store.update_user(user_id, updates)
+
+        if not user:
+            return JSONResponse({"error": "User not found"}, status_code=404)
+
+        return JSONResponse({
+            "user": user.to_dict(),
+            "message": "User updated successfully"
+        })
+
+    except Exception as e:
+        logger.error(f"Error updating user: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/users/{user_id}", methods=["DELETE"])
+async def delete_user(request):
+    """Delete user (real mode only)"""
+    try:
+        if user_store.get_demo_mode():
+            return JSONResponse({"error": "Cannot delete users in demo mode"}, status_code=400)
+
+        user_id = request.path_params["user_id"]
+        success = await user_store.delete_user(user_id)
+
+        if not success:
+            return JSONResponse({"error": "User not found"}, status_code=404)
+
+        return JSONResponse({"message": "User deleted successfully"})
+
+    except Exception as e:
+        logger.error(f"Error deleting user: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/user-stats", methods=["GET"])
+async def get_user_stats(request):
+    """Get aggregate user statistics"""
+    try:
+        stats = await user_store.get_user_stats()
+        return JSONResponse(stats)
+
+    except Exception as e:
+        logger.error(f"Error getting user stats: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/demo/reset", methods=["POST"])
+async def reset_demo_data(request):
+    """Reset demo data (demo mode only)"""
+    try:
+        if not user_store.get_demo_mode():
+            return JSONResponse({"error": "Reset only available in demo mode"}, status_code=400)
+
+        await user_store.reset_demo_data()
+
+        return JSONResponse({
+            "message": "Demo data reset successfully",
+            "demo_mode": True
+        })
+
+    except Exception as e:
+        logger.error(f"Error resetting demo data: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 @mcp.custom_route(path="/.well-known/oauth-authorization-server", methods=["GET"])
 async def oauth_discovery(request):
     """OAuth 2.1 discovery endpoint"""
@@ -1478,9 +1635,12 @@ async def token_info(request):
 if __name__ == "__main__":
     port = int(os.getenv('SERVER_PORT', 8000))
     debug = os.getenv('DEBUG', 'false').lower() == 'true'
-    
+
     logger.info(f"Starting MCP Adapter on port {port}")
     logger.info(f"Debug mode: {debug}")
-    
+
+    # Start user simulation once event loop is available
+    user_store.start_simulation()
+
     # Run the MCP server (will serve MCP at /mcp and dashboard at /)
     mcp.run(transport="http", host="0.0.0.0", port=port)

@@ -603,7 +603,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:17:21.672506+00:00",
       "expires_at": "2025-09-15T17:17:21.672509+00:00",
       "current_request_context": {
@@ -637,7 +637,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:17:50.814255+00:00",
       "expires_at": "2025-09-15T17:17:50.814263+00:00",
       "current_request_context": {
@@ -674,7 +674,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:19:09.736928+00:00",
       "expires_at": "2025-09-15T17:19:09.736931+00:00",
       "current_request_context": {
@@ -709,7 +709,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:20:14.660802+00:00",
       "expires_at": "2025-09-15T17:20:14.660805+00:00",
       "current_request_context": {
@@ -744,7 +744,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:21:21.466898+00:00",
       "expires_at": "2025-09-15T17:21:21.466909+00:00",
       "current_request_context": {
@@ -778,7 +778,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:23:52.020014+00:00",
       "expires_at": "2025-09-15T17:23:52.020021+00:00",
       "current_request_context": {
@@ -816,7 +816,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T16:49:54.450075+00:00",
       "expires_at": "2025-09-15T17:49:54.450078+00:00",
       "current_request_context": {
@@ -850,7 +850,7 @@
         "CISO": "PENDING",
         "BUSINESS_LEAD": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T17:14:14.598049+00:00",
       "expires_at": "2025-09-15T18:14:14.598053+00:00",
       "current_request_context": {
@@ -888,7 +888,7 @@
         "ENTERPRISE_DEFAULT": "DENY",
         "IT_ADMIN": "PENDING"
       },
-      "status": "PENDING",
+      "status": "DENY",
       "created_at": "2025-09-15T17:15:52.928517+00:00",
       "expires_at": "2025-09-15T18:15:52.928519+00:00",
       "current_request_context": {
@@ -908,8 +908,117 @@
           "HIGH: Schema object deletion"
         ]
       }
+    },
+    {
+      "request_id": "vote_1757957511_9013",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "DENY",
+      "created_at": "2025-09-15T17:31:51.672618+00:00",
+      "expires_at": "2025-09-15T18:31:51.672620+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757962340_9013",
+      "permission_type": "pii_sensitive_data",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "SELECT * FROM customers WHERE ssn IS NOT NULL"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "BUSINESS_LEAD": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T18:52:20.976253+00:00",
+      "expires_at": "2025-09-15T19:52:20.976258+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "SELECT * FROM customers WHERE ssn IS NOT NULL",
+          "query_length": 45,
+          "tables_accessed": [
+            "CUSTOMERS"
+          ],
+          "operations": [
+            "select"
+          ]
+        },
+        "violations": [
+          "HIGH: Direct PII column access",
+          "HIGH: Customer data table access",
+          "MEDIUM: Unrestricted SELECT * without LIMIT"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757962342_9013",
+      "permission_type": "pii_sensitive_data",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "SELECT * FROM customers WHERE ssn IS NOT NULL"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "BUSINESS_LEAD": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T18:52:22.772320+00:00",
+      "expires_at": "2025-09-15T19:52:22.772333+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "SELECT * FROM customers WHERE ssn IS NOT NULL",
+          "query_length": 45,
+          "tables_accessed": [
+            "CUSTOMERS"
+          ],
+          "operations": [
+            "select"
+          ]
+        },
+        "violations": [
+          "HIGH: Direct PII column access",
+          "HIGH: Customer data table access",
+          "MEDIUM: Unrestricted SELECT * without LIMIT"
+        ]
+      }
     }
   ],
   "approval_cache": {},
-  "last_updated": "2025-09-15T17:15:52.928601+00:00"
+  "last_updated": "2025-09-15T18:52:22.772685+00:00"
 }
