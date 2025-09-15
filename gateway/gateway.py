@@ -1586,6 +1586,28 @@ async def create_policy(request):
         logger.error(f"Error creating policy: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
+@mcp.custom_route(path="/admin/api/start-simulation", methods=["POST"])
+async def start_simulation_endpoint(request):
+    """Start the high-frequency activity simulation"""
+    try:
+        if user_store.demo_mode:
+            await user_store.start_simulation_async()
+            return JSONResponse({
+                "success": True,
+                "message": "High-frequency activity simulation started",
+                "mode": "demo",
+                "frequency": "10-100 events per second"
+            })
+        else:
+            return JSONResponse({
+                "success": False,
+                "message": "Simulation only available in demo mode",
+                "mode": "production"
+            }, status_code=400)
+    except Exception as e:
+        logger.error(f"Error starting simulation: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 async def save_policy_to_governance(policy):
     """Save policy to the governance system"""
     try:

@@ -1047,7 +1047,13 @@
                 <p>Deep analysis of governance decisions and compliance reporting</p>
                 <button class="action-btn">Explore Audits</button>
             </div>
-            
+
+            <div class="action-card" onclick="openActivityTimeSeries()">
+                <h3>📈 Activity Timeline</h3>
+                <p>Real-time visualization of system activity patterns and alert trends</p>
+                <button class="action-btn">View Timeline</button>
+            </div>
+
             <div class="action-card" onclick="openEmergencyCenter()">
                 <h3>🚨 Emergency Center</h3>
                 <p>Emergency controls, incident response, and crisis management</p>
@@ -1759,6 +1765,69 @@
             if (confirm('🚨 EMERGENCY CENTER\n\nThis will open emergency governance controls.\n\nProceed?')) {
                 alert('🚨 EMERGENCY CONTROLS ACTIVATED\n\n• All AI agents blocked\n• Critical operations require dual approval\n• Security team notified\n• Incident response initiated');
             }
+        }
+
+        function openActivityTimeSeries() {
+            // Create modal for time series chart
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = \`
+                <div class="modal-content" style="width: 80%; max-width: 1200px; height: 80%;">
+                    <div class="modal-header">
+                        <h2>📈 Activity Timeline - Real-time System Monitoring</h2>
+                        <button onclick="this.closest('.modal-overlay').remove()" class="modal-close">×</button>
+                    </div>
+                    <div class="modal-body" style="height: calc(100% - 80px); overflow: hidden;">
+                        <div style="display: flex; gap: 20px; height: 100%;">
+                            <!-- Chart Container -->
+                            <div style="flex: 1; background: #f8fafc; border-radius: 8px; padding: 20px;">
+                                <h3 style="margin-top: 0; color: #1e293b;">Activity Volume (Events per Second)</h3>
+                                <canvas id="timeSeriesChart" style="width: 100%; height: 300px;"></canvas>
+
+                                <h3 style="color: #1e293b; margin-top: 30px;">Alert Distribution</h3>
+                                <canvas id="alertChart" style="width: 100%; height: 200px;"></canvas>
+                            </div>
+
+                            <!-- Live Stats -->
+                            <div style="width: 300px; background: #f1f5f9; border-radius: 8px; padding: 20px;">
+                                <h3 style="margin-top: 0; color: #1e293b;">Live Statistics</h3>
+                                <div class="stat-item">
+                                    <div class="stat-label">Current Rate</div>
+                                    <div class="stat-value" id="current-rate">-- events/sec</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Total Events</div>
+                                    <div class="stat-value" id="total-events">--</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Alert Events</div>
+                                    <div class="stat-value" id="alert-events">--</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Alert Rate</div>
+                                    <div class="stat-value" id="alert-rate">--%</div>
+                                </div>
+
+                                <h4 style="color: #1e293b; margin-top: 30px;">Recent Alerts</h4>
+                                <div id="recent-alerts" style="font-size: 12px; max-height: 200px; overflow-y: auto;">
+                                    Loading...
+                                </div>
+
+                                <button onclick="refreshActivityData()" class="btn-primary" style="width: 100%; margin-top: 20px;">
+                                    🔄 Refresh
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            \`;
+            document.body.appendChild(modal);
+
+            // Initialize charts after modal is added to DOM
+            setTimeout(() => {
+                initializeActivityCharts();
+                startRealTimeUpdates();
+            }, 100);
         }
         
         // Governance testing
@@ -3067,8 +3136,193 @@
                 alert(`✅ Agent access revoked: ${agentId}\n\nAll credentials have been invalidated.\nAgent can no longer access any services.`);
             }
         }
-        
+
+        // Activity Timeline Chart Implementation
+        let timeSeriesChart, alertChart;
+        let activityData = [];
+        let alertData = [];
+        let chartUpdateInterval;
+
+        function initializeActivityCharts() {
+            const timeCtx = document.getElementById('timeSeriesChart');
+            const alertCtx = document.getElementById('alertChart');
+
+            if (!timeCtx || !alertCtx) return;
+
+            // Time series chart for activity volume
+            timeSeriesChart = new Chart(timeCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Events/sec',
+                        data: [],
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }, {
+                        label: 'Alerts/sec',
+                        data: [],
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        tension: 0.4,
+                        fill: false
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                parser: 'YYYY-MM-DDTHH:mm:ss',
+                                displayFormats: {
+                                    second: 'HH:mm:ss'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Events per Second'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: true
+                        }
+                    }
+                }
+            });
+
+            // Alert distribution pie chart
+            alertChart = new Chart(alertCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Normal Events', 'Alert Events'],
+                    datasets: [{
+                        data: [95, 5],
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+
+            // Load initial data
+            refreshActivityData();
+        }
+
+        async function refreshActivityData() {
+            try {
+                const response = await fetch('/admin/api/activity');
+                const events = await response.json();
+
+                // Calculate events per second over last 60 seconds
+                const now = new Date();
+                const timeWindows = [];
+                const alertCounts = [];
+                const totalCounts = [];
+
+                for (let i = 60; i >= 0; i--) {
+                    const windowStart = new Date(now.getTime() - i * 1000);
+                    const windowEnd = new Date(now.getTime() - (i - 1) * 1000);
+
+                    const windowEvents = events.filter(event => {
+                        const eventTime = new Date(event.timestamp);
+                        return eventTime >= windowStart && eventTime < windowEnd;
+                    });
+
+                    const alertEvents = windowEvents.filter(event => event.details?.is_alert === true);
+
+                    timeWindows.push(windowStart.toISOString().substr(11, 8));
+                    totalCounts.push(windowEvents.length);
+                    alertCounts.push(alertEvents.length);
+                }
+
+                // Update time series chart
+                if (timeSeriesChart) {
+                    timeSeriesChart.data.labels = timeWindows;
+                    timeSeriesChart.data.datasets[0].data = totalCounts;
+                    timeSeriesChart.data.datasets[1].data = alertCounts;
+                    timeSeriesChart.update('none');
+                }
+
+                // Update alert distribution
+                const totalEvents = events.length;
+                const alertEvents = events.filter(event => event.details?.is_alert === true).length;
+                const normalEvents = totalEvents - alertEvents;
+
+                if (alertChart) {
+                    alertChart.data.datasets[0].data = [normalEvents, alertEvents];
+                    alertChart.update();
+                }
+
+                // Update live statistics
+                const currentRate = totalCounts[totalCounts.length - 1] || 0;
+                const alertRate = totalEvents > 0 ? ((alertEvents / totalEvents) * 100).toFixed(1) : '0.0';
+
+                document.getElementById('current-rate').textContent = \`\${currentRate} events/sec\`;
+                document.getElementById('total-events').textContent = totalEvents.toLocaleString();
+                document.getElementById('alert-events').textContent = alertEvents.toLocaleString();
+                document.getElementById('alert-rate').textContent = \`\${alertRate}%\`;
+
+                // Update recent alerts
+                const recentAlerts = events
+                    .filter(event => event.details?.is_alert === true)
+                    .slice(0, 10);
+
+                const alertsHtml = recentAlerts.length > 0
+                    ? recentAlerts.map(alert => \`
+                        <div style="padding: 5px; border-left: 3px solid #ef4444; margin-bottom: 5px; background: white; border-radius: 3px;">
+                            <div style="font-weight: bold; color: #ef4444;">\${alert.severity.toUpperCase()}</div>
+                            <div style="color: #64748b; font-size: 11px;">\${new Date(alert.timestamp).toLocaleTimeString()}</div>
+                            <div style="margin-top: 3px;">\${alert.message.substring(0, 50)}...</div>
+                        </div>
+                    \`).join('')
+                    : '<div style="color: #64748b; text-align: center; padding: 20px;">No recent alerts</div>';
+
+                document.getElementById('recent-alerts').innerHTML = alertsHtml;
+
+            } catch (error) {
+                console.error('Error fetching activity data:', error);
+            }
+        }
+
+        function startRealTimeUpdates() {
+            // Update every 2 seconds
+            chartUpdateInterval = setInterval(refreshActivityData, 2000);
+
+            // Clean up interval when modal is closed
+            const modal = document.querySelector('.modal-overlay');
+            if (modal) {
+                const observer = new MutationObserver((mutations) => {
+                    if (!document.body.contains(modal)) {
+                        clearInterval(chartUpdateInterval);
+                        observer.disconnect();
+                    }
+                });
+                observer.observe(document.body, { childList: true });
+            }
+        }
+
     </script>
+
+    <!-- Chart.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     
     <!-- Demo Tour Overlay -->
     <div id="demo-tour-overlay" class="demo-tour-overlay">

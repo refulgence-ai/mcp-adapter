@@ -306,39 +306,96 @@ class UserDataStore:
                 self._simulation_started = True
                 logger.info("User activity simulation started")
             except RuntimeError:
-                # Event loop not available yet - will try again later
+                # Event loop not available yet - schedule for later
+                logger.info("Event loop not ready - scheduling simulation for startup")
                 pass
 
+    async def start_simulation_async(self):
+        """Async version to start simulation when event loop is available"""
+        if self.demo_mode and not hasattr(self, '_simulation_started'):
+            asyncio.create_task(self._simulate_user_activity())
+            self._simulation_started = True
+            logger.info("High-frequency user activity simulation started (10-100 events/sec)")
+
     async def _simulate_user_activity(self):
-        """Simulate ongoing user activity for demo purposes"""
+        """Simulate high-frequency user activity (10-100 events per second)"""
         while self.demo_mode:
             try:
-                # Simulate user activity every 10-30 seconds
-                await asyncio.sleep(random.randint(10, 30))
+                # Generate bursts of activity to simulate realistic enterprise usage
+                # Base sleep time: 0.01-0.1 seconds (10-100 events per second)
+                base_sleep = random.uniform(0.01, 0.1)
 
-                # Pick a random active user
+                # Adjust based on time of day
+                current_hour = datetime.now().hour
+                if 9 <= current_hour <= 17:  # Business hours
+                    sleep_time = base_sleep * random.uniform(0.3, 0.8)  # Higher frequency
+                    burst_chance = 0.4  # 40% chance of bursts
+                elif 6 <= current_hour <= 21:  # Extended hours
+                    sleep_time = base_sleep * random.uniform(0.8, 1.2)  # Normal frequency
+                    burst_chance = 0.2  # 20% chance of bursts
+                else:  # Off hours
+                    sleep_time = base_sleep * random.uniform(2, 5)  # Lower frequency
+                    burst_chance = 0.05  # 5% chance of bursts
+
+                await asyncio.sleep(sleep_time)
+
+                # Pick multiple users for concurrent activity simulation
                 active_users = [u for u in self.users.values() if u.status == UserStatus.ACTIVE]
                 if not active_users:
                     continue
 
-                user = random.choice(active_users)
+                # Generate 1-5 concurrent activities
+                concurrent_count = random.choices([1, 2, 3, 4, 5], weights=[40, 25, 20, 10, 5])[0]
 
-                # Simulate query activity
-                current_hour = datetime.now().hour
-                if current_hour in user.access_patterns["peak_hours"]:
-                    # Higher activity during peak hours
-                    if random.random() < 0.3:  # 30% chance during peak
-                        await self._simulate_user_query(user)
-                else:
-                    # Lower activity during off-peak
-                    if random.random() < 0.1:  # 10% chance during off-peak
-                        await self._simulate_user_query(user)
+                tasks = []
+                for _ in range(concurrent_count):
+                    user = random.choice(active_users)
+
+                    # Most traffic is normal queries (95%), small fraction are alerts (5%)
+                    if random.random() < 0.95:
+                        # Normal traffic
+                        if random.random() < 0.8:  # 80% queries, 20% other activities
+                            tasks.append(self._simulate_user_query(user, is_alert=False))
+                        else:
+                            tasks.append(self._simulate_other_activity(user, is_alert=False))
+                    else:
+                        # Alert traffic (5% of total)
+                        if random.random() < 0.7:  # 70% alert queries, 30% other alert activities
+                            tasks.append(self._simulate_user_query(user, is_alert=True))
+                        else:
+                            tasks.append(self._simulate_other_activity(user, is_alert=True))
+
+                # Execute concurrent activities
+                if tasks:
+                    await asyncio.gather(*tasks)
+
+                # Occasional system events (2% of cycles)
+                if random.random() < 0.02:
+                    asyncio.create_task(self._simulate_system_event())
+
+                # Burst activity during peak times
+                if random.random() < burst_chance:
+                    # Generate a burst of 5-15 rapid events
+                    burst_count = random.randint(5, 15)
+                    burst_tasks = []
+                    for _ in range(burst_count):
+                        user = random.choice(active_users)
+                        if random.random() < 0.9:
+                            burst_tasks.append(self._simulate_user_query(user))
+                        else:
+                            burst_tasks.append(self._simulate_other_activity(user))
+
+                    # Execute burst with slight delays
+                    for i, task in enumerate(burst_tasks):
+                        if i > 0:
+                            await asyncio.sleep(random.uniform(0.02, 0.1))
+                        asyncio.create_task(task)
 
             except Exception as e:
                 logger.error(f"Error in user activity simulation: {e}")
-                await asyncio.sleep(60)  # Wait longer on error
+                await asyncio.sleep(5)  # Short wait on error
 
-    async def _simulate_user_query(self, user: User):
+    async def _simulate_user_query(self, user: User, is_alert: bool = False):
         """Simulate a single user query"""
         # Import here to avoid circular imports
         from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
@@ -351,22 +408,36 @@ class UserDataStore:
             query_type = "basic_query"
 
         # Generate simulated query
-        sample_queries = {
-            "audit": "SELECT * FROM audit_logs WHERE timestamp > NOW() - INTERVAL '1 hour'",
-            "monitoring": "SELECT COUNT(*) FROM system_metrics WHERE status = 'error'",
-            "analytics": "SELECT department, AVG(revenue) FROM sales_data GROUP BY department",
-            "reporting": "SELECT * FROM monthly_reports WHERE month = CURRENT_MONTH",
-            "lookup": "SELECT * FROM users WHERE id = 'specific_user'",
-            "configuration": "UPDATE system_config SET value = 'new_value' WHERE key = 'setting'",
-            "basic_query": "SELECT * FROM public.data_table LIMIT 10"
-        }
+        if is_alert:
+            # Alert queries are more suspicious/dangerous
+            alert_queries = {
+                "audit": "SELECT * FROM sensitive_audit_logs WHERE user_data LIKE '%ssn%'",
+                "monitoring": "SELECT COUNT(*) FROM system_metrics WHERE status = 'critical_failure'",
+                "analytics": "SELECT ssn, credit_card FROM customer_data GROUP BY department",
+                "reporting": "SELECT * FROM confidential_reports WHERE classification = 'secret'",
+                "lookup": "SELECT password, ssn FROM users WHERE role = 'admin'",
+                "configuration": "DROP TABLE user_permissions CASCADE",
+                "basic_query": "SELECT * FROM production.sensitive_data"
+            }
+            query = alert_queries.get(query_type, "SELECT * FROM restricted.pii_data")
+            block_probability = 0.8 + user.risk_score * 0.15  # High chance of blocking alerts
+        else:
+            # Normal queries
+            sample_queries = {
+                "audit": "SELECT * FROM audit_logs WHERE timestamp > NOW() - INTERVAL '1 hour'",
+                "monitoring": "SELECT COUNT(*) FROM system_metrics WHERE status = 'error'",
+                "analytics": "SELECT department, AVG(revenue) FROM sales_data GROUP BY department",
+                "reporting": "SELECT * FROM monthly_reports WHERE month = CURRENT_MONTH",
+                "lookup": "SELECT * FROM users WHERE id = 'specific_user'",
+                "configuration": "UPDATE system_config SET value = 'new_value' WHERE key = 'setting'",
+                "basic_query": "SELECT * FROM public.data_table LIMIT 10"
+            }
+            query = sample_queries.get(query_type, "SELECT * FROM public.example LIMIT 5")
 
-        query = sample_queries.get(query_type, "SELECT * FROM public.example LIMIT 5")
-
-        # Determine if query should be blocked (based on user risk score and query type)
-        block_probability = user.risk_score * 0.1
-        if "DROP" in query.upper() or "DELETE" in query.upper():
-            block_probability += 0.8
+            # Normal probability for regular queries
+            block_probability = user.risk_score * 0.05
+            if "DROP" in query.upper() or "DELETE" in query.upper():
+                block_probability += 0.3
 
         is_blocked = random.random() < block_probability
 
@@ -380,21 +451,251 @@ class UserDataStore:
             else:
                 user.approved_queries += 1
 
-        # Track in activity system
+        # Track in activity system with full user context
         if is_blocked:
+            severity = ActivitySeverity.CRITICAL if is_alert else ActivitySeverity.WARNING
             await activity_tracker.track_event(
                 ActivityType.QUERY_BLOCKED,
-                f"Simulated query blocked for {user.name}",
-                ActivitySeverity.WARNING,
-                {"user_id": user.id, "query": query, "simulated": True}
+                f"{'Alert: ' if is_alert else ''}Query blocked for {user.name}: {query[:50]}...",
+                severity,
+                {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_email": user.email,
+                    "user_role": user.role.value,
+                    "user_department": user.department,
+                    "query": query,
+                    "query_type": query_type,
+                    "risk_score": user.risk_score,
+                    "is_alert": is_alert,
+                    "simulated": True
+                },
+                subject_id=user.id,
+                tool_name="redshift_execute_query"
             )
         else:
+            severity = ActivitySeverity.INFO if is_alert else ActivitySeverity.SUCCESS
             await activity_tracker.track_event(
                 ActivityType.QUERY_EXECUTED,
-                f"Simulated query executed by {user.name}",
-                ActivitySeverity.SUCCESS,
-                {"user_id": user.id, "query": query, "simulated": True}
+                f"{'Alert query executed by' if is_alert else 'Query executed by'} {user.name}: {query[:50]}...",
+                severity,
+                {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_email": user.email,
+                    "user_role": user.role.value,
+                    "user_department": user.department,
+                    "query": query,
+                    "query_type": query_type,
+                    "is_alert": is_alert,
+                    "simulated": True
+                },
+                subject_id=user.id,
+                tool_name="redshift_execute_query"
             )
+
+    async def _simulate_other_activity(self, user: User, is_alert: bool = False):
+        """Simulate various non-query activities"""
+        # Import here to avoid circular imports
+        from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+        # Different activity types based on user role
+        activity_options = {
+            UserRole.SECURITY_ANALYST: [
+                ("security_scan", "Security scan completed", ActivityType.SECURITY_VIOLATION, ActivitySeverity.INFO),
+                ("policy_review", "Policy compliance review", ActivityType.PII_ACCESS_ATTEMPTED, ActivitySeverity.WARNING),
+                ("audit_review", "Audit log review completed", ActivityType.AUDIT_EXPORTED, ActivitySeverity.INFO),
+                ("threat_detection", "Threat detection alert", ActivityType.SECURITY_VIOLATION, ActivitySeverity.WARNING)
+            ],
+            UserRole.ADMIN: [
+                ("system_config", "System configuration updated", ActivityType.POLICY_UPDATED, ActivitySeverity.INFO),
+                ("user_management", "User permissions modified", ActivityType.POLICY_CREATED, ActivitySeverity.INFO),
+                ("backup_verification", "Backup verification completed", ActivityType.AUDIT_EXPORTED, ActivitySeverity.SUCCESS),
+                ("maintenance_task", "Maintenance task executed", ActivityType.SCHEMA_CHANGE_ATTEMPTED, ActivitySeverity.WARNING)
+            ],
+            UserRole.BUSINESS_LEAD: [
+                ("report_generation", "Business report generated", ActivityType.APPROVAL_REQUESTED, ActivitySeverity.INFO),
+                ("approval_decision", "Request approval granted", ActivityType.APPROVAL_GRANTED, ActivitySeverity.SUCCESS),
+                ("workflow_review", "Workflow approval review", ActivityType.APPROVAL_REQUESTED, ActivitySeverity.INFO),
+                ("denial_decision", "Request approval denied", ActivityType.APPROVAL_DENIED, ActivitySeverity.WARNING)
+            ],
+            UserRole.AGENT: [
+                ("automation_run", "Automated task execution", ActivityType.QUERY_EXECUTED, ActivitySeverity.SUCCESS),
+                ("data_processing", "Data processing pipeline", ActivityType.QUERY_EXECUTED, ActivitySeverity.INFO),
+                ("ml_pipeline", "ML pipeline execution", ActivityType.QUERY_EXECUTED, ActivitySeverity.SUCCESS),
+                ("integration_task", "System integration task", ActivityType.QUERY_EXECUTED, ActivitySeverity.INFO)
+            ],
+            UserRole.CISO: [
+                ("policy_creation", "Security policy created", ActivityType.POLICY_CREATED, ActivitySeverity.INFO),
+                ("emergency_review", "Emergency security review", ActivityType.EMERGENCY_BLOCK, ActivitySeverity.CRITICAL),
+                ("compliance_audit", "Compliance audit initiated", ActivityType.AUDIT_EXPORTED, ActivitySeverity.INFO),
+                ("governance_review", "Governance framework review", ActivityType.POLICY_UPDATED, ActivitySeverity.INFO)
+            ],
+            UserRole.USER: [
+                ("data_export", "Data export completed", ActivityType.QUERY_EXECUTED, ActivitySeverity.SUCCESS),
+                ("report_download", "Report download", ActivityType.QUERY_EXECUTED, ActivitySeverity.INFO),
+                ("dashboard_view", "Dashboard accessed", ActivityType.QUERY_EXECUTED, ActivitySeverity.INFO)
+            ]
+        }
+
+        # Get activities for this user role
+        role_activities = activity_options.get(user.role, activity_options[UserRole.USER])
+        activity_name, message, activity_type, severity = random.choice(role_activities)
+
+        # If this is an alert activity, escalate severity and modify message
+        if is_alert:
+            severity = ActivitySeverity.CRITICAL if severity == ActivitySeverity.WARNING else ActivitySeverity.WARNING
+            message = f"Alert: {message}"
+            activity_name = f"alert_{activity_name}"
+
+        # Sometimes generate approval workflows
+        if random.random() < 0.15:  # 15% chance
+            await self._simulate_approval_workflow(user)
+            return
+
+        # Sometimes simulate agent connections/disconnections
+        if random.random() < 0.05:  # 5% chance
+            connected = random.choice([True, False])
+            alert_prefix = "Alert: " if is_alert else ""
+            await activity_tracker.track_event(
+                ActivityType.AGENT_CONNECTED if connected else ActivityType.AGENT_DISCONNECTED,
+                f"{alert_prefix}Agent {user.name} {'connected' if connected else 'disconnected'}",
+                ActivitySeverity.WARNING if is_alert else ActivitySeverity.INFO,
+                {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_email": user.email,
+                    "user_role": user.role.value,
+                    "user_department": user.department,
+                    "is_alert": is_alert,
+                    "simulated": True,
+                    "agent_type": user.role.value
+                },
+                subject_id=user.id,
+                tool_name="agent_connection"
+            )
+            return
+
+        # Track the selected activity with full user context
+        await activity_tracker.track_event(
+            activity_type,
+            f"{message} by {user.name}",
+            severity,
+            {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_email": user.email,
+                "user_role": user.role.value,
+                "user_department": user.department,
+                "activity": activity_name,
+                "is_alert": is_alert,
+                "simulated": True,
+                "subject_id": user.id
+            },
+            subject_id=user.id,
+            tool_name=activity_name
+        )
+
+    async def _simulate_approval_workflow(self, user: User):
+        """Simulate an approval workflow scenario"""
+        from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+        # Simulate approval request first
+        tools = ["redshift_execute_query", "user_management", "data_export", "system_config"]
+        tool_name = random.choice(tools)
+        risk_levels = ["LOW", "MEDIUM", "HIGH", "CRITICAL"]
+        risk_level = random.choice(risk_levels)
+
+        await activity_tracker.track_event(
+            ActivityType.APPROVAL_REQUESTED,
+            f"Approval requested for {tool_name} by {user.name}",
+            ActivitySeverity.WARNING if risk_level in ["HIGH", "CRITICAL"] else ActivitySeverity.INFO,
+            {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_email": user.email,
+                "user_role": user.role.value,
+                "user_department": user.department,
+                "tool": tool_name,
+                "risk_level": risk_level,
+                "simulated": True
+            },
+            subject_id=user.id,
+            tool_name=tool_name
+        )
+
+        # Wait a random amount of time before approval decision (1-8 seconds)
+        await asyncio.sleep(random.uniform(1, 8))
+
+        # Business leads and CISO more likely to approve
+        if user.role in [UserRole.BUSINESS_LEAD, UserRole.CISO]:
+            approved = random.random() < 0.8  # 80% approval rate
+        else:
+            approved = random.random() < 0.6  # 60% approval rate
+
+        decision_type = ActivityType.APPROVAL_GRANTED if approved else ActivityType.APPROVAL_DENIED
+        decision_severity = ActivitySeverity.SUCCESS if approved else ActivitySeverity.WARNING
+
+        await activity_tracker.track_event(
+            decision_type,
+            f"Request {'approved' if approved else 'denied'} by {user.name}",
+            decision_severity,
+            {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_email": user.email,
+                "user_role": user.role.value,
+                "user_department": user.department,
+                "tool": tool_name,
+                "decision": "APPROVE" if approved else "DENY",
+                "simulated": True
+            },
+            subject_id=user.id,
+            tool_name=tool_name
+        )
+
+    async def _simulate_system_event(self):
+        """Simulate system-level events not tied to specific users"""
+        from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+        system_events = [
+            ("rate_limit_check", "Rate limit monitoring check", ActivityType.RATE_LIMIT_WARNING, ActivitySeverity.INFO),
+            ("system_backup", "Automated system backup", ActivityType.AUDIT_EXPORTED, ActivitySeverity.SUCCESS),
+            ("security_scan", "Automated security scan", ActivityType.SECURITY_VIOLATION, ActivitySeverity.INFO),
+            ("policy_sync", "Policy synchronization", ActivityType.POLICY_UPDATED, ActivitySeverity.INFO),
+            ("schema_validation", "Database schema validation", ActivityType.SCHEMA_CHANGE_ATTEMPTED, ActivitySeverity.INFO),
+            ("emergency_alert", "Emergency security alert", ActivityType.EMERGENCY_BLOCK, ActivitySeverity.CRITICAL),
+            ("audit_cleanup", "Audit log cleanup", ActivityType.AUDIT_EXPORTED, ActivitySeverity.INFO),
+            ("system_health", "System health check", ActivityType.QUERY_EXECUTED, ActivitySeverity.SUCCESS),
+            ("connection_monitor", "Connection monitoring", ActivityType.AGENT_CONNECTED, ActivitySeverity.INFO),
+            ("policy_violation", "Policy violation detected", ActivityType.SECURITY_VIOLATION, ActivitySeverity.WARNING)
+        ]
+
+        event_name, message, activity_type, severity = random.choice(system_events)
+
+        # Add some variability to system events
+        system_details = {
+            "event_type": "system",
+            "automated": True,
+            "simulated": True,
+            "system_component": random.choice(["gateway", "database", "auth_service", "monitor", "audit_service"]),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        }
+
+        # Some events might be more critical during certain times
+        current_hour = datetime.now().hour
+        if current_hour < 6 or current_hour > 22:  # Off hours
+            if event_name in ["emergency_alert", "security_scan"]:
+                severity = ActivitySeverity.WARNING
+
+        await activity_tracker.track_event(
+            activity_type,
+            f"System: {message}",
+            severity,
+            system_details,
+            subject_id="system",
+            tool_name=event_name
+        )
 
     async def get_user(self, user_id: str) -> Optional[User]:
         """Get user by ID"""
