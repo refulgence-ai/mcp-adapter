@@ -5,6 +5,7 @@ Tracks all governance events and provides real-time activity feed
 
 import asyncio
 import json
+import os
 from datetime import datetime, timezone
 from typing import Dict, List, Any, Optional
 from enum import Enum
@@ -90,6 +91,19 @@ class ActivityTracker:
         self.subscribers = []
         self._initialized = True
         self._lock = asyncio.Lock()
+
+        # Set up data persistence
+        self.data_dir = '/app/data'
+        self.events_file = f'{self.data_dir}/activity_events.json'
+
+        # Ensure data directory exists (gracefully handle read-only filesystems in tests)
+        try:
+            os.makedirs(self.data_dir, exist_ok=True)
+            # Load existing events
+            self._load_persistent_events()
+        except (OSError, PermissionError):
+            # In test environments or read-only filesystems, skip persistence
+            logger.warning(f"Cannot create data directory {self.data_dir} - persistence disabled")
         
         # Statistics
         self.stats = {
@@ -129,9 +143,17 @@ class ActivityTracker:
             
             # Notify subscribers (for WebSocket/SSE)
             await self._notify_subscribers(event)
-            
+
+            # Save events periodically (every 10 events) or on critical events
+            if (len(self.events) % 10 == 0 or
+                event.severity in [ActivitySeverity.CRITICAL]):
+                try:
+                    await asyncio.get_event_loop().run_in_executor(None, self._save_persistent_events)
+                except Exception as e:
+                    logger.debug(f"Persistence disabled or failed: {e}")
+
             logger.info(f"Activity tracked: {event.message} [{event.severity.value}]")
-            
+
             return event
     
     def _update_stats(self, event: ActivityEvent):
@@ -191,6 +213,51 @@ class ActivityTracker:
         """Unsubscribe from activity events"""
         if callback in self.subscribers:
             self.subscribers.remove(callback)
+
+    def _load_persistent_events(self):
+        """Load activity events from storage"""
+        try:
+            if os.path.exists(self.events_file):
+                with open(self.events_file, 'r') as f:
+                    events_data = json.load(f)
+
+                # Reconstruct events from stored data
+                for event_data in events_data:
+                    # Create ActivityEvent from stored data
+                    event = ActivityEvent(
+                        activity_type=ActivityType(event_data['type']),
+                        severity=ActivitySeverity(event_data['severity']),
+                        message=event_data['message'],
+                        details=event_data.get('details', {}),
+                        subject_id=event_data.get('subject_id'),
+                        tool_name=event_data.get('tool_name')
+                    )
+                    # Override the auto-generated fields with stored values
+                    event.id = event_data['id']
+                    event.timestamp = datetime.fromisoformat(event_data['timestamp'])
+
+                    self.events.append(event)
+
+                    # Update statistics based on loaded events
+                    self._update_stats(event)
+
+                logger.info(f"Loaded {len(self.events)} activity events from persistent storage")
+
+        except Exception as e:
+            logger.error(f"Error loading activity events: {e}")
+            # Continue with empty events rather than failing
+
+    def _save_persistent_events(self):
+        """Save activity events to storage"""
+        try:
+            events_data = [event.to_dict() for event in self.events]
+            with open(self.events_file, 'w') as f:
+                json.dump(events_data, f, indent=2)
+
+            logger.debug(f"Saved {len(self.events)} activity events to persistent storage")
+
+        except Exception as e:
+            logger.error(f"Error saving activity events: {e}")
 
 # Global tracker instance
 activity_tracker = ActivityTracker()

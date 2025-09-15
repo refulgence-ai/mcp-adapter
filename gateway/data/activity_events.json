@@ -1,0 +1,42 @@
+[
+  {
+    "id": "event_1757965069101",
+    "timestamp": "2025-09-15T19:37:49.101457+00:00",
+    "type": "query_blocked",
+    "severity": "warning",
+    "message": "Query blocked: SELECT * FROM users...",
+    "details": {
+      "query": "SELECT * FROM users",
+      "subject": "test_user (developer)"
+    },
+    "subject_id": null,
+    "tool_name": null
+  },
+  {
+    "id": "event_1757965069101",
+    "timestamp": "2025-09-15T19:37:49.101512+00:00",
+    "type": "approval_requested",
+    "severity": "info",
+    "message": "Approval requested for redshift_execute_query",
+    "details": {
+      "tool": "redshift_execute_query",
+      "subject": "test_user",
+      "risk_level": "MEDIUM"
+    },
+    "subject_id": "test_user",
+    "tool_name": "redshift_execute_query"
+  },
+  {
+    "id": "event_1757965069123",
+    "timestamp": "2025-09-15T19:37:49.123738+00:00",
+    "type": "query_blocked",
+    "severity": "critical",
+    "message": "Query blocked: DROP TABLE customers...",
+    "details": {
+      "query": "DROP TABLE customers",
+      "subject": "test_user (coding_agent)"
+    },
+    "subject_id": null,
+    "tool_name": null
+  }
+]

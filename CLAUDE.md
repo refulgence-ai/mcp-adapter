@@ -17,6 +17,8 @@ For security features, enterprise architecture, and value proposition details, s
 
 **🎮 Demo Checklist**: [DEMO_CHECKLIST.md](DEMO_CHECKLIST.md) - Complete demo walkthrough guide with troubleshooting, audience-specific scenarios, and success metrics for delivering smooth demonstrations.
 
+**💾 Data Persistence**: [PERSISTENCE.md](PERSISTENCE.md) - Comprehensive guide to data persistence architecture, including file-based storage, Docker volume configuration, demo/production modes, backup strategies, and troubleshooting.
+
 The project contains:
 
 1. **Gateway Server** (`gateway/`) - MCP server that aggregates tools from multiple backend MCP servers
@@ -161,6 +163,42 @@ This is required because:
 - Key variables: `LOG_LEVEL`, `DEBUG`, `SERVER_PORT`
 - LaTeX server: `LATEX_COMPILER`, `LATEX_TIMEOUT`, `MAX_FILE_SIZE`
 - Refulgence demo mode: `REFULGENCE_DEMO_MODE` (true/false)
+
+## Data Persistence Architecture
+
+The Refulgence Admin System implements comprehensive file-based persistence for all governance data. **See [PERSISTENCE.md](PERSISTENCE.md) for complete documentation.**
+
+### Key Features
+- **Docker Volume Persistence**: All data stored in dedicated `gateway-data` volume
+- **Automatic Backups**: Critical events trigger immediate saves, routine data saved every 10 events
+- **Demo/Production Modes**: Persistent storage works seamlessly in both modes
+- **Graceful Degradation**: System starts successfully even with missing data files
+
+### Persistent Data Components
+1. **UserDataStore** (`/app/data/users.json`, `/app/data/activity_patterns.json`)
+   - User profiles, roles, and permissions
+   - Activity analytics and patterns
+   - Demo/production mode configurations
+
+2. **ActivityTracker** (`/app/data/activity_events.json`)
+   - Complete audit trail (last 1000 events)
+   - Security incidents and violations
+   - Agent lifecycle events
+   - Query executions and policy decisions
+
+3. **Governance Policies** (`gateway/policies.json`)
+   - Policy rules and approval matrices
+   - Role-based access controls
+
+### Data Persistence Testing
+```bash
+# Test persistence across container restarts
+docker-compose restart gateway
+curl http://localhost:8080/api/admin/stats  # Verify data survived restart
+
+# Manual backup
+docker cp mcp-adapter-gateway:/app/data ./backup-$(date +%Y%m%d)
+```
 
 ## User Data Storage System
 

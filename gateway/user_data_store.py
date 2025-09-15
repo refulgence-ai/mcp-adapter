@@ -107,11 +107,28 @@ class UserDataStore:
         self._initialized = True
         self._lock = asyncio.Lock()
 
-        # Initialize with demo data if in demo mode
-        if self.demo_mode:
-            self._initialize_demo_users()
+        # Set up data persistence paths
+        self.data_dir = '/app/data'
+        self.users_file = f'{self.data_dir}/users.json'
+        self.activity_patterns_file = f'{self.data_dir}/activity_patterns.json'
 
-        logger.info(f"UserDataStore initialized in {'demo' if self.demo_mode else 'real'} mode")
+        # Ensure data directory exists (gracefully handle read-only filesystems in tests)
+        try:
+            os.makedirs(self.data_dir, exist_ok=True)
+            # Load existing data first
+            self._load_persistent_data()
+
+            # Initialize with demo data if in demo mode and no existing data
+            if self.demo_mode and not self.users:
+                self._initialize_demo_users()
+                self._save_persistent_data()  # Save demo data immediately
+        except (OSError, PermissionError):
+            # In test environments or read-only filesystems, skip persistence and use demo data
+            logger.warning(f"Cannot create data directory {self.data_dir} - persistence disabled, using demo data")
+            if self.demo_mode:
+                self._initialize_demo_users()
+
+        logger.info(f"UserDataStore initialized in {'demo' if self.demo_mode else 'real'} mode with {len(self.users)} users")
 
     def _initialize_demo_users(self):
         """Initialize with realistic demo users"""
@@ -410,6 +427,7 @@ class UserDataStore:
             )
 
             self.users[user.id] = user
+            self._save_persistent_data()  # Persist new user
             return user
 
     async def update_user(self, user_id: str, updates: Dict[str, Any]) -> Optional[User]:
@@ -432,6 +450,7 @@ class UserDataStore:
                     else:
                         setattr(user, key, value)
 
+            self._save_persistent_data()  # Persist user updates
             return user
 
     async def delete_user(self, user_id: str) -> bool:
@@ -442,6 +461,7 @@ class UserDataStore:
         async with self._lock:
             if user_id in self.users:
                 del self.users[user_id]
+                self._save_persistent_data()  # Persist user deletion
                 return True
             return False
 
@@ -470,6 +490,11 @@ class UserDataStore:
                 # Keep only recent patterns (last 100)
                 if len(self.activity_patterns[user_id]) > 100:
                     self.activity_patterns[user_id] = self.activity_patterns[user_id][-100:]
+
+                # Save activity patterns periodically (every 10 activities)
+                total_patterns = sum(len(patterns) for patterns in self.activity_patterns.values())
+                if total_patterns % 10 == 0:
+                    self._save_persistent_data()
 
     async def get_user_stats(self) -> Dict[str, Any]:
         """Get aggregate user statistics"""
@@ -545,7 +570,55 @@ class UserDataStore:
             self.users.clear()
             self.activity_patterns.clear()
             self._initialize_demo_users()
+            self._save_persistent_data()  # Persist the reset
             logger.info("Demo data reset successfully")
+
+    def _load_persistent_data(self):
+        """Load user data and activity patterns from storage"""
+        try:
+            # Load users
+            if os.path.exists(self.users_file):
+                with open(self.users_file, 'r') as f:
+                    users_data = json.load(f)
+                    for user_data in users_data:
+                        user = User.from_dict(user_data)
+                        self.users[user.id] = user
+                logger.info(f"Loaded {len(self.users)} users from persistent storage")
+
+            # Load activity patterns
+            if os.path.exists(self.activity_patterns_file):
+                with open(self.activity_patterns_file, 'r') as f:
+                    self.activity_patterns = defaultdict(list, json.load(f))
+                total_patterns = sum(len(patterns) for patterns in self.activity_patterns.values())
+                logger.info(f"Loaded {total_patterns} activity patterns from persistent storage")
+
+        except Exception as e:
+            logger.error(f"Error loading persistent data: {e}")
+            # Continue with empty data rather than failing
+
+    def _save_persistent_data(self):
+        """Save user data and activity patterns to storage"""
+        try:
+            # Save users
+            users_data = [user.to_dict() for user in self.users.values()]
+            with open(self.users_file, 'w') as f:
+                json.dump(users_data, f, indent=2)
+
+            # Save activity patterns
+            with open(self.activity_patterns_file, 'w') as f:
+                json.dump(dict(self.activity_patterns), f, indent=2)
+
+            logger.debug(f"Saved {len(self.users)} users and activity patterns to persistent storage")
+
+        except (OSError, PermissionError, FileNotFoundError):
+            # Silently skip persistence in test environments
+            logger.debug("Persistence disabled - skipping save operation")
+        except Exception as e:
+            logger.error(f"Error saving persistent data: {e}")
+
+    async def _save_async(self):
+        """Async wrapper for save operation"""
+        await asyncio.get_event_loop().run_in_executor(None, self._save_persistent_data)
 
 # Global store instance
 user_store = UserDataStore()

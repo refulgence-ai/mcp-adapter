@@ -298,7 +298,184 @@
             background: #fff3cd;
             color: #856404;
         }
-        
+
+        /* Workflow Card Styles */
+        .workflow-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .workflow-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #007bff;
+        }
+
+        .workflow-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .workflow-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .workflow-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-inactive {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .workflow-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 0.85em;
+        }
+
+        .workflow-description {
+            color: #666;
+            margin-bottom: 10px;
+            font-style: italic;
+        }
+
+        .workflow-trigger {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .workflow-stats {
+            font-size: 0.85em;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 10px;
+        }
+
+        /* Agent Card Styles */
+        .agent-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .agent-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #007bff;
+        }
+
+        .agent-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .agent-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .agent-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .status-suspended {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .credential-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .credential-valid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .credential-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .credential-expired {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .agent-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .agent-info {
+            margin-bottom: 15px;
+        }
+
+        .agent-accountable {
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .agent-type {
+            color: #666;
+        }
+
+        .agent-stats {
+            font-size: 0.85em;
+            color: #666;
+            border-top: 1px solid #e0e0e0;
+            padding-top: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #333;
+        }
+
         /* Policy Matrix */
         .policy-matrix {
             overflow-x: auto;
@@ -607,6 +784,7 @@
             <div class="tab-nav">
                 <button class="tab-button active" onclick="showTab('overview')">📊 Overview</button>
                 <button class="tab-button" onclick="showTab('users')">👥 User Management</button>
+                <button class="tab-button" onclick="showTab('agents')">🤖 Agent Credentials</button>
                 <button class="tab-button" onclick="showTab('policies')">📋 Policy Matrix</button>
                 <button class="tab-button" onclick="showTab('workflows')">🔄 Workflows</button>
                 <button class="tab-button" onclick="showTab('approvals')">⚖️ Approvals</button>
@@ -698,7 +876,117 @@
                     </table>
                 </div>
             </div>
-            
+
+            <!-- Agent Credentials Tab -->
+            <div id="agents" class="tab-content">
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>🤖 AI Agent Credential Management</h3>
+                    <p>Provision and manage AI agent credentials for human-accountable users</p>
+
+                    <div class="agent-controls" style="margin-bottom: 20px; text-align: right;">
+                        <button class="btn-primary" onclick="loadDemoAgents()">🧪 Load Demo Agents</button>
+                        <button class="btn-secondary" onclick="generateAPIKey()">🔑 Generate API Key</button>
+                        <button class="btn-primary" onclick="provisionNewAgent()">➕ Provision New Agent</button>
+                    </div>
+
+                    <div class="agent-overview" style="margin-bottom: 20px;">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-number" id="total-agents">0</div>
+                                <div class="stat-label">Active Agents</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="pending-provisions">0</div>
+                                <div class="stat-label">Pending Provisions</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="credential-rotations">0</div>
+                                <div class="stat-label">Credential Rotations</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-number" id="security-violations">0</div>
+                                <div class="stat-label">Security Violations</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="agent-list" id="agent-list">
+                        <div style="text-align: center; color: #666; padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">🤖</div>
+                            <div>No agents provisioned yet</div>
+                            <div style="font-size: 14px; margin-top: 5px;">Click "Load Demo Agents" to see examples</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Agent Provisioning Form -->
+                <div class="card" id="agent-provision-form" style="display: none;">
+                    <h3>🔐 Provision New AI Agent</h3>
+
+                    <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                        <div>
+                            <h4>👤 Human Account Manager</h4>
+                            <div class="form-group">
+                                <label>Accountable User:</label>
+                                <select id="accountable-user" style="width: 100%;">
+                                    <option value="">Select human user...</option>
+                                    <option value="sarah_wilson_sec">Sarah Wilson (Security)</option>
+                                    <option value="mike_chen_admin">Mike Chen (Admin)</option>
+                                    <option value="emma_rodriguez_biz">Emma Rodriguez (Business)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Manager Approval Required:</label>
+                                <input type="checkbox" id="manager-approval" checked> Yes
+                            </div>
+                            <div class="form-group">
+                                <label>Access Justification:</label>
+                                <textarea id="access-justification" placeholder="Business justification for agent access..." style="width: 100%; height: 80px;"></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <h4>🤖 Agent Configuration</h4>
+                            <div class="form-group">
+                                <label>Agent Name:</label>
+                                <input type="text" id="agent-name" placeholder="e.g., Claude-DataAnalyst-001" style="width: 100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>Agent Type:</label>
+                                <select id="agent-type" style="width: 100%;">
+                                    <option value="coding">Coding Assistant</option>
+                                    <option value="analytics">Data Analytics</option>
+                                    <option value="research">Research Assistant</option>
+                                    <option value="automation">Process Automation</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Permission Level:</label>
+                                <select id="agent-permissions" style="width: 100%;">
+                                    <option value="read_only">Read Only</option>
+                                    <option value="limited_write">Limited Write</option>
+                                    <option value="full_access">Full Access (Requires CISO Approval)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Credential Validity:</label>
+                                <select id="credential-validity" style="width: 100%;">
+                                    <option value="7">7 days</option>
+                                    <option value="30">30 days</option>
+                                    <option value="90">90 days</option>
+                                    <option value="365">1 year</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; text-align: center;">
+                        <button class="btn-primary" onclick="submitAgentProvision()">🚀 Provision Agent</button>
+                        <button class="btn-secondary" onclick="cancelAgentProvision()" style="margin-left: 15px;">❌ Cancel</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Policy Matrix Tab -->
             <div id="policies" class="tab-content">
                 <div class="card">
@@ -763,9 +1051,29 @@
             
             <!-- Workflows Tab -->
             <div id="workflows" class="tab-content">
-                <div class="card">
+                <!-- Existing Workflows Section -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>📋 Active Governance Workflows</h3>
+
+                    <div class="workflow-controls" style="margin-bottom: 20px; text-align: right;">
+                        <button class="btn-primary" onclick="loadDemoWorkflows()">🧪 Load Demo Workflows</button>
+                        <button class="btn-secondary" onclick="exportWorkflows()">📤 Export All</button>
+                        <button class="btn-primary" onclick="showCreateWorkflow()">➕ Create New Workflow</button>
+                    </div>
+
+                    <div class="workflow-list" id="workflow-list">
+                        <div style="text-align: center; color: #666; padding: 40px;">
+                            <div style="font-size: 48px; margin-bottom: 10px;">📄</div>
+                            <div>No workflows configured yet</div>
+                            <div style="font-size: 14px; margin-top: 5px;">Click "Load Demo Workflows" to see examples</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Create New Workflow Section -->
+                <div class="card" id="create-workflow-section" style="display: none;">
                     <h3>🔄 Policy Workflow Development</h3>
-                    
+
                     <div class="workflow-builder">
                         <h4>Create New Governance Workflow</h4>
                         
@@ -834,6 +1142,7 @@
                         <button class="btn-primary" onclick="deployWorkflow()">🚀 Deploy Workflow</button>
                         <button class="btn-secondary" onclick="testWorkflow()">🧪 Test Workflow</button>
                         <button class="btn-secondary" onclick="saveWorkflowTemplate()">📋 Save Template</button>
+                        <button class="btn-secondary" onclick="hideCreateWorkflow()" style="margin-left: 20px;">❌ Cancel</button>
                     </div>
                 </div>
             </div>
@@ -1724,6 +2033,314 @@
         
         function exportDemoPolicy() {
             alert(`📤 Exporting Demo Policy Configuration...\n\n✅ Export Complete!\n\nFiles generated:\n- refulgence_policy_matrix.json\n- governance_rules.yaml\n- compliance_report.pdf\n\nReady for deployment to production environment!`);
+        }
+
+        // Workflow Management Functions
+        function loadDemoWorkflows() {
+            const demoWorkflows = [
+                {
+                    id: 'wf_001',
+                    name: 'AI Agent Database Access',
+                    description: 'Governance workflow for AI agent database operations',
+                    trigger: 'Subject is AI agent AND Operation contains database access',
+                    status: 'active',
+                    created: '2024-01-15',
+                    lastUsed: '2 hours ago',
+                    executions: 24,
+                    approvalRate: '87%'
+                },
+                {
+                    id: 'wf_002',
+                    name: 'PII Data Access Review',
+                    description: 'Multi-stakeholder review for PII column access',
+                    trigger: 'Query accesses PII columns (SSN, email, phone)',
+                    status: 'active',
+                    created: '2024-01-10',
+                    lastUsed: '15 min ago',
+                    executions: 156,
+                    approvalRate: '94%'
+                },
+                {
+                    id: 'wf_003',
+                    name: 'Schema Modification Review',
+                    description: 'Critical review process for schema changes',
+                    trigger: 'Destructive operations (DROP, ALTER, DELETE)',
+                    status: 'active',
+                    created: '2024-01-08',
+                    lastUsed: '1 day ago',
+                    executions: 8,
+                    approvalRate: '25%'
+                },
+                {
+                    id: 'wf_004',
+                    name: 'High-Volume Query Alert',
+                    description: 'Automatic review for large data extractions',
+                    trigger: 'Query returns > 10,000 rows OR no LIMIT clause',
+                    status: 'inactive',
+                    created: '2024-01-20',
+                    lastUsed: 'Never',
+                    executions: 0,
+                    approvalRate: 'N/A'
+                }
+            ];
+
+            const workflowList = document.getElementById('workflow-list');
+            workflowList.innerHTML = '';
+
+            demoWorkflows.forEach(workflow => {
+                const statusClass = workflow.status === 'active' ? 'status-active' : 'status-inactive';
+                const statusIcon = workflow.status === 'active' ? '🟢' : '🔴';
+
+                const workflowCard = document.createElement('div');
+                workflowCard.className = 'workflow-card';
+                workflowCard.innerHTML = `
+                    <div class="workflow-header">
+                        <div class="workflow-title">
+                            <strong>${workflow.name}</strong>
+                            <span class="workflow-status ${statusClass}">${statusIcon} ${workflow.status.toUpperCase()}</span>
+                        </div>
+                        <div class="workflow-actions">
+                            <button class="btn-primary btn-sm" onclick="editWorkflow('${workflow.id}')">✏️ Edit</button>
+                            <button class="btn-secondary btn-sm" onclick="duplicateWorkflow('${workflow.id}')">📋 Duplicate</button>
+                            <button class="btn-secondary btn-sm" onclick="viewWorkflowStats('${workflow.id}')">📊 Stats</button>
+                            <button class="btn-danger btn-sm" onclick="deleteWorkflow('${workflow.id}')">🗑️ Delete</button>
+                        </div>
+                    </div>
+                    <div class="workflow-description">${workflow.description}</div>
+                    <div class="workflow-trigger"><strong>Trigger:</strong> ${workflow.trigger}</div>
+                    <div class="workflow-stats">
+                        <span>📅 Created: ${workflow.created}</span> |
+                        <span>⏰ Last Used: ${workflow.lastUsed}</span> |
+                        <span>🔄 Executions: ${workflow.executions}</span> |
+                        <span>✅ Approval Rate: ${workflow.approvalRate}</span>
+                    </div>
+                `;
+                workflowList.appendChild(workflowCard);
+            });
+
+            if (!demoTourActive) {
+                alert(`✅ Demo workflows loaded!\n\n${demoWorkflows.length} governance workflows are now visible.\n\nThese demonstrate real-world policy automation scenarios.`);
+            }
+        }
+
+        function showCreateWorkflow() {
+            document.getElementById('create-workflow-section').style.display = 'block';
+            document.getElementById('create-workflow-section').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function hideCreateWorkflow() {
+            document.getElementById('create-workflow-section').style.display = 'none';
+        }
+
+        function editWorkflow(workflowId) {
+            showCreateWorkflow();
+            alert(`✏️ Editing workflow: ${workflowId}\n\nWorkflow editor loaded with existing configuration.`);
+        }
+
+        function duplicateWorkflow(workflowId) {
+            alert(`📋 Duplicating workflow: ${workflowId}\n\n✅ Workflow copied!\n\nNew workflow ID: ${workflowId}_copy`);
+        }
+
+        function viewWorkflowStats(workflowId) {
+            alert(`📊 Workflow Analytics: ${workflowId}\n\n📈 Performance Metrics:\n- Execution Count: 24\n- Average Response Time: 2.3s\n- Success Rate: 94.2%\n- False Positive Rate: 3.1%\n\n🎯 Recent Triggers:\n- PII access attempts: 15\n- Schema modifications: 3\n- AI agent queries: 6`);
+        }
+
+        function deleteWorkflow(workflowId) {
+            if (confirm(`🗑️ Delete workflow: ${workflowId}?\n\nThis action cannot be undone.`)) {
+                alert(`✅ Workflow deleted: ${workflowId}`);
+            }
+        }
+
+        function exportWorkflows() {
+            alert(`📤 Exporting all workflows...\n\n✅ Export complete!\n\nFiles generated:\n- workflows_backup.json\n- workflow_documentation.pdf\n- governance_config.yaml`);
+        }
+
+        function deployWorkflow() {
+            alert(`🚀 Deploying new workflow...\n\n✅ Deployment successful!\n\nWorkflow is now active and monitoring governance events.`);
+        }
+
+        function testWorkflow() {
+            alert(`🧪 Testing workflow logic...\n\n✅ Test completed!\n\nResults:\n- Trigger conditions: PASS\n- Risk assessment: PASS\n- Stakeholder routing: PASS\n- Decision logic: PASS`);
+        }
+
+        function saveWorkflowTemplate() {
+            alert(`📋 Saving workflow template...\n\n✅ Template saved!\n\nTemplate can be reused for similar governance scenarios.`);
+        }
+
+        // Agent Credential Management Functions
+        function loadDemoAgents() {
+            const demoAgents = [
+                {
+                    id: 'agent_001',
+                    name: 'Claude-DataAnalyst-Sarah',
+                    type: 'Data Analytics',
+                    accountableUser: 'Sarah Wilson',
+                    accountableUserRole: 'Security Analyst',
+                    status: 'active',
+                    credentialStatus: 'valid',
+                    permissions: 'read_only',
+                    created: '2024-01-15',
+                    expires: '2024-04-15',
+                    lastUsed: '2 hours ago',
+                    apiCalls: 1247,
+                    violations: 0
+                },
+                {
+                    id: 'agent_002',
+                    name: 'Claude-Assistant-Mike',
+                    type: 'Coding Assistant',
+                    accountableUser: 'Mike Chen',
+                    accountableUserRole: 'IT Admin',
+                    status: 'active',
+                    credentialStatus: 'expiring_soon',
+                    permissions: 'limited_write',
+                    created: '2024-01-08',
+                    expires: '2024-02-08',
+                    lastUsed: '15 min ago',
+                    apiCalls: 3521,
+                    violations: 2
+                },
+                {
+                    id: 'agent_003',
+                    name: 'Claude-Research-Emma',
+                    type: 'Research Assistant',
+                    accountableUser: 'Emma Rodriguez',
+                    accountableUserRole: 'Business Lead',
+                    status: 'active',
+                    credentialStatus: 'valid',
+                    permissions: 'read_only',
+                    created: '2024-01-20',
+                    expires: '2024-07-20',
+                    lastUsed: '1 day ago',
+                    apiCalls: 892,
+                    violations: 0
+                },
+                {
+                    id: 'agent_004',
+                    name: 'Claude-Automation-Legacy',
+                    type: 'Process Automation',
+                    accountableUser: 'Former Employee',
+                    accountableUserRole: 'N/A',
+                    status: 'suspended',
+                    credentialStatus: 'revoked',
+                    permissions: 'none',
+                    created: '2023-11-15',
+                    expires: '2024-01-15',
+                    lastUsed: '30 days ago',
+                    apiCalls: 156,
+                    violations: 1
+                }
+            ];
+
+            // Update stats
+            document.getElementById('total-agents').textContent = demoAgents.filter(a => a.status === 'active').length;
+            document.getElementById('pending-provisions').textContent = '2';
+            document.getElementById('credential-rotations').textContent = '5';
+            document.getElementById('security-violations').textContent = demoAgents.reduce((sum, a) => sum + a.violations, 0);
+
+            const agentList = document.getElementById('agent-list');
+            agentList.innerHTML = '';
+
+            demoAgents.forEach(agent => {
+                const statusClass = agent.status === 'active' ? 'status-active' :
+                                  agent.status === 'suspended' ? 'status-suspended' : 'status-inactive';
+                const statusIcon = agent.status === 'active' ? '🟢' :
+                                  agent.status === 'suspended' ? '🟡' : '🔴';
+
+                const credentialClass = agent.credentialStatus === 'valid' ? 'credential-valid' :
+                                      agent.credentialStatus === 'expiring_soon' ? 'credential-warning' : 'credential-expired';
+
+                const agentCard = document.createElement('div');
+                agentCard.className = 'agent-card';
+                agentCard.innerHTML = `
+                    <div class="agent-header">
+                        <div class="agent-title">
+                            <strong>${agent.name}</strong>
+                            <span class="agent-status ${statusClass}">${statusIcon} ${agent.status.toUpperCase()}</span>
+                            <span class="credential-status ${credentialClass}">🔑 ${agent.credentialStatus.replace('_', ' ').toUpperCase()}</span>
+                        </div>
+                        <div class="agent-actions">
+                            <button class="btn-primary btn-sm" onclick="rotateCredentials('${agent.id}')">🔄 Rotate</button>
+                            <button class="btn-secondary btn-sm" onclick="viewAgentDetails('${agent.id}')">📊 Details</button>
+                            <button class="btn-secondary btn-sm" onclick="downloadCredentials('${agent.id}')">💾 Download</button>
+                            <button class="btn-danger btn-sm" onclick="revokeAgent('${agent.id}')">🚫 Revoke</button>
+                        </div>
+                    </div>
+                    <div class="agent-info">
+                        <div class="agent-accountable">
+                            <strong>👤 Accountable User:</strong> ${agent.accountableUser} (${agent.accountableUserRole})
+                        </div>
+                        <div class="agent-type"><strong>🤖 Type:</strong> ${agent.type} | <strong>🔐 Permissions:</strong> ${agent.permissions}</div>
+                    </div>
+                    <div class="agent-stats">
+                        <span>📅 Created: ${agent.created}</span> |
+                        <span>⏰ Expires: ${agent.expires}</span> |
+                        <span>🔗 API Calls: ${agent.apiCalls}</span> |
+                        <span>⚠️ Violations: ${agent.violations}</span> |
+                        <span>🕐 Last Used: ${agent.lastUsed}</span>
+                    </div>
+                `;
+                agentList.appendChild(agentCard);
+            });
+
+            if (!demoTourActive) {
+                alert(`✅ Demo agents loaded!\n\n${demoAgents.length} AI agents are now visible.\n\nThese show the human-agent accountability model.`);
+            }
+        }
+
+        function provisionNewAgent() {
+            document.getElementById('agent-provision-form').style.display = 'block';
+            document.getElementById('agent-provision-form').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function cancelAgentProvision() {
+            document.getElementById('agent-provision-form').style.display = 'none';
+        }
+
+        function submitAgentProvision() {
+            const accountableUser = document.getElementById('accountable-user').value;
+            const agentName = document.getElementById('agent-name').value;
+            const agentType = document.getElementById('agent-type').value;
+            const permissions = document.getElementById('agent-permissions').value;
+            const validity = document.getElementById('credential-validity').value;
+            const justification = document.getElementById('access-justification').value;
+
+            if (!accountableUser || !agentName || !justification) {
+                alert('❌ Please fill in all required fields');
+                return;
+            }
+
+            const requiresApproval = permissions === 'full_access' ? '\n\n⚠️ CISO approval required for full access.' : '';
+
+            alert(`🚀 Agent provision request submitted!\n\nAgent: ${agentName}\nType: ${agentType}\nAccountable User: ${accountableUser}\nPermissions: ${permissions}\nValidity: ${validity} days${requiresApproval}\n\n✅ Credentials will be generated upon approval.`);
+
+            cancelAgentProvision();
+        }
+
+        function generateAPIKey() {
+            const apiKey = 'mcp-' + Math.random().toString(36).substr(2, 32);
+            alert(`🔑 New API Key Generated!\n\nAPI Key: ${apiKey}\n\n⚠️ Important:\n- Copy this key now - it won't be shown again\n- Store securely in your credential manager\n- Agent must use this key for authentication\n\n🔒 This key expires in 90 days`);
+        }
+
+        function rotateCredentials(agentId) {
+            if (confirm(`🔄 Rotate credentials for ${agentId}?\n\nThis will:\n- Generate new API key\n- Invalidate current credentials\n- Require agent reconfiguration\n\nContinue?`)) {
+                const newKey = 'mcp-' + Math.random().toString(36).substr(2, 32);
+                alert(`✅ Credentials rotated for ${agentId}\n\nNew API Key: ${newKey}\n\n⚠️ Update your agent configuration immediately.`);
+            }
+        }
+
+        function viewAgentDetails(agentId) {
+            alert(`📊 Agent Analytics: ${agentId}\n\n📈 Usage Statistics:\n- Total API Calls: 1,247\n- Average Daily Usage: 42 calls\n- Peak Usage Hour: 2:00 PM\n- Success Rate: 98.2%\n\n🔒 Security Events:\n- Failed Authentication: 0\n- Permission Violations: 0\n- Suspicious Activity: None\n\n🕐 Activity Timeline:\n- Last 24h: 45 calls\n- Last 7d: 312 calls\n- Last 30d: 1,247 calls`);
+        }
+
+        function downloadCredentials(agentId) {
+            alert(`💾 Downloading credentials for ${agentId}\n\n📋 Credential Package:\n- API Key (encrypted)\n- Configuration JSON\n- Usage Guidelines\n- Security Policies\n\n✅ Download started!\n\nFiles will be saved to your secure downloads folder.`);
+        }
+
+        function revokeAgent(agentId) {
+            if (confirm(`🚫 Revoke agent access for ${agentId}?\n\nThis will:\n- Immediately invalidate all credentials\n- Block all API access\n- Require re-provisioning for future use\n\nThis action cannot be undone. Continue?`)) {
+                alert(`✅ Agent access revoked: ${agentId}\n\nAll credentials have been invalidated.\nAgent can no longer access any services.`);
+            }
         }
         
     </script>

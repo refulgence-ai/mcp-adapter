@@ -1,0 +1,253 @@
+[
+  {
+    "id": "sarah_wilson_sec",
+    "name": "Sarah Wilson",
+    "email": "sarah.wilson@company.com",
+    "role": "security",
+    "status": "active",
+    "permissions": "monitor_review",
+    "created_at": "2025-05-08T19:33:37.527570+00:00",
+    "last_active": "2025-09-15T10:33:37.527570+00:00",
+    "total_queries": 45,
+    "approved_queries": 42,
+    "blocked_queries": 3,
+    "risk_score": 0.1,
+    "department": "Security",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "redshift_execute_query",
+        "audit_logs",
+        "security_scan"
+      ],
+      "peak_hours": [
+        8,
+        9,
+        14,
+        15,
+        16
+      ],
+      "query_types": {
+        "audit": 20,
+        "monitoring": 15,
+        "investigation": 10
+      },
+      "approval_rate": 0.9333333333333333
+    }
+  },
+  {
+    "id": "mike_chen_admin",
+    "name": "Mike Chen",
+    "email": "mike.chen@company.com",
+    "role": "admin",
+    "status": "active",
+    "permissions": "admin_full",
+    "created_at": "2025-03-17T19:33:37.527570+00:00",
+    "last_active": "2025-09-14T16:33:37.527570+00:00",
+    "total_queries": 123,
+    "approved_queries": 115,
+    "blocked_queries": 8,
+    "risk_score": 0.2,
+    "department": "IT",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "redshift_execute_query",
+        "user_management",
+        "system_config"
+      ],
+      "peak_hours": [
+        9,
+        10,
+        11,
+        13,
+        14
+      ],
+      "query_types": {
+        "configuration": 30,
+        "monitoring": 20,
+        "maintenance": 15
+      },
+      "approval_rate": 0.9349593495934959
+    }
+  },
+  {
+    "id": "emma_rodriguez_biz",
+    "name": "Emma Rodriguez",
+    "email": "emma.rodriguez@company.com",
+    "role": "business",
+    "status": "active",
+    "permissions": "execute_approve",
+    "created_at": "2024-11-26T19:33:37.527570+00:00",
+    "last_active": "2025-09-15T03:33:37.527570+00:00",
+    "total_queries": 78,
+    "approved_queries": 70,
+    "blocked_queries": 8,
+    "risk_score": 0.3,
+    "department": "Analytics",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "redshift_execute_query",
+        "analytics_dashboard",
+        "report_generation"
+      ],
+      "peak_hours": [
+        10,
+        11,
+        14,
+        15,
+        16
+      ],
+      "query_types": {
+        "analytics": 25,
+        "reporting": 20,
+        "dashboard": 15
+      },
+      "approval_rate": 0.8974358974358975
+    }
+  },
+  {
+    "id": "david_kim_user",
+    "name": "David Kim",
+    "email": "david.kim@company.com",
+    "role": "user",
+    "status": "active",
+    "permissions": "read_only",
+    "created_at": "2025-06-21T19:33:37.527570+00:00",
+    "last_active": "2025-09-15T17:33:37.527570+00:00",
+    "total_queries": 23,
+    "approved_queries": 21,
+    "blocked_queries": 2,
+    "risk_score": 0.05,
+    "department": "Finance",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "redshift_execute_query",
+        "data_export"
+      ],
+      "peak_hours": [
+        9,
+        10,
+        11,
+        14,
+        15
+      ],
+      "query_types": {
+        "lookup": 15,
+        "export": 5,
+        "basic_query": 3
+      },
+      "approval_rate": 0.9130434782608695
+    }
+  },
+  {
+    "id": "alex_thompson_agent",
+    "name": "Alex Thompson",
+    "email": "alex.thompson@company.com",
+    "role": "agent",
+    "status": "active",
+    "permissions": "execute_approve",
+    "created_at": "2025-06-22T19:33:37.527570+00:00",
+    "last_active": "2025-09-14T05:33:37.527570+00:00",
+    "total_queries": 234,
+    "approved_queries": 198,
+    "blocked_queries": 36,
+    "risk_score": 0.4,
+    "department": "AI Operations",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "redshift_execute_query",
+        "ml_pipeline",
+        "data_processing"
+      ],
+      "peak_hours": [
+        8,
+        9,
+        10,
+        13,
+        14,
+        15,
+        16
+      ],
+      "query_types": {
+        "data_processing": 50,
+        "ml_pipeline": 30,
+        "automation": 20
+      },
+      "approval_rate": 0.8461538461538461
+    }
+  },
+  {
+    "id": "jennifer_park_ciso",
+    "name": "Jennifer Park",
+    "email": "jennifer.park@company.com",
+    "role": "ciso",
+    "status": "active",
+    "permissions": "admin_full",
+    "created_at": "2025-06-19T19:33:37.527570+00:00",
+    "last_active": "2025-09-13T19:33:37.527570+00:00",
+    "total_queries": 67,
+    "approved_queries": 65,
+    "blocked_queries": 2,
+    "risk_score": 0.0,
+    "department": "Executive",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "security_overview",
+        "policy_management",
+        "audit_review"
+      ],
+      "peak_hours": [
+        10,
+        11,
+        14,
+        15
+      ],
+      "query_types": {
+        "audit": 15,
+        "policy": 10,
+        "overview": 8
+      },
+      "approval_rate": 0.9701492537313433
+    }
+  },
+  {
+    "id": "tom_watson_inactive",
+    "name": "Tom Watson",
+    "email": "tom.watson@company.com",
+    "role": "user",
+    "status": "inactive",
+    "permissions": "read_only",
+    "created_at": "2025-06-22T19:33:37.527570+00:00",
+    "last_active": "2025-09-06T03:33:37.527570+00:00",
+    "total_queries": 12,
+    "approved_queries": 12,
+    "blocked_queries": 0,
+    "risk_score": 0.0,
+    "department": "Marketing",
+    "manager_id": null,
+    "access_patterns": {
+      "frequent_tools": [
+        "redshift_execute_query",
+        "data_export"
+      ],
+      "peak_hours": [
+        9,
+        10,
+        11,
+        14,
+        15
+      ],
+      "query_types": {
+        "lookup": 15,
+        "export": 5,
+        "basic_query": 3
+      },
+      "approval_rate": 1.0
+    }
+  }
+]

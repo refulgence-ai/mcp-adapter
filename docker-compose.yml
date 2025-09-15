@@ -17,6 +17,7 @@ services:
       - mcp-network
     volumes:
       - ./gateway:/app
+      - gateway-data:/app/data
 
   # Hello World server for testing
   hello-world:
@@ -84,6 +85,10 @@ services:
       - mcp-network
     volumes:
       - ./redshift-server:/app
+
+volumes:
+  gateway-data:
+    driver: local
 
 networks:
   mcp-network:
