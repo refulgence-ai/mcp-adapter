@@ -1264,8 +1264,115 @@
           "HIGH: Schema object deletion"
         ]
       }
+    },
+    {
+      "request_id": "vote_1757966000_7591",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:53:20.870631+00:00",
+      "expires_at": "2025-09-15T20:53:20.870634+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757966122_386",
+      "permission_type": "pii_sensitive_data",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "SELECT * FROM customers WHERE ssn IS NOT NULL"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "BUSINESS_LEAD": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:55:22.654521+00:00",
+      "expires_at": "2025-09-15T20:55:22.654524+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "SELECT * FROM customers WHERE ssn IS NOT NULL",
+          "query_length": 45,
+          "tables_accessed": [
+            "CUSTOMERS"
+          ],
+          "operations": [
+            "select"
+          ]
+        },
+        "violations": [
+          "HIGH: Direct PII column access",
+          "HIGH: Customer data table access",
+          "MEDIUM: Unrestricted SELECT * without LIMIT"
+        ]
+      }
+    },
+    {
+      "request_id": "vote_1757966343_9610",
+      "permission_type": "database_admin_rights",
+      "subject_type": "coding_agent",
+      "subject_id": "test_user",
+      "mcp_tool": "redshift_execute_query",
+      "tool_arguments": {
+        "query": "DROP TABLE customers"
+      },
+      "votes": {
+        "CISO": "PENDING",
+        "ENTERPRISE_DEFAULT": "DENY",
+        "IT_ADMIN": "PENDING"
+      },
+      "status": "PENDING",
+      "created_at": "2025-09-15T19:59:03.969880+00:00",
+      "expires_at": "2025-09-15T20:59:03.969882+00:00",
+      "current_request_context": {
+        "subject_type": "coding_agent",
+        "subject_id": "test_user",
+        "test_mode": true,
+        "inspection_result": {
+          "query": "DROP TABLE customers",
+          "query_length": 20,
+          "tables_accessed": [],
+          "operations": [
+            "drop"
+          ]
+        },
+        "violations": [
+          "CRITICAL: Destructive DROP operation",
+          "HIGH: Schema object deletion"
+        ]
+      }
     }
   ],
   "approval_cache": {},
-  "last_updated": "2025-09-15T19:52:26.033858+00:00"
+  "last_updated": "2025-09-15T19:59:03.970017+00:00"
 }

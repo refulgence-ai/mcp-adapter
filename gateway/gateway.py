@@ -1526,6 +1526,118 @@ async def reset_demo_data(request):
         logger.error(f"Error resetting demo data: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
+@mcp.custom_route(path="/admin/api/policies", methods=["POST"])
+async def create_policy(request):
+    """Create a new governance policy"""
+    try:
+        # Parse request body
+        body = await request.json()
+
+        # Validate required fields
+        required_fields = ['name', 'description', 'action', 'risk_level', 'category']
+        for field in required_fields:
+            if not body.get(field):
+                return JSONResponse({"error": f"Missing required field: {field}"}, status_code=400)
+
+        # Generate policy ID
+        import time
+        policy_id = f"pol_{int(time.time())}_{hash(body['name']) % 10000}"
+
+        # Create policy object
+        policy = {
+            "id": policy_id,
+            "name": body['name'],
+            "description": body['description'],
+            "action": body['action'],
+            "risk_level": body['risk_level'],
+            "category": body['category'],
+            "query_pattern": body.get('query_pattern', ''),
+            "subject_type": body.get('subject_type', 'any'),
+            "approvers": body.get('approvers', ['CISO']),
+            "active": body.get('active', True),
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "created_by": "admin",  # TODO: Get from auth context
+            "version": 1
+        }
+
+        # Save policy to governance system
+        await save_policy_to_governance(policy)
+
+        # Track policy creation activity
+        await track_security_event("policy_created", {
+            "policy_id": policy_id,
+            "policy_name": policy['name'],
+            "risk_level": policy['risk_level'],
+            "category": policy['category']
+        })
+
+        logger.info(f"Policy created successfully: {policy_id}")
+
+        return JSONResponse({
+            "success": True,
+            "policy_id": policy_id,
+            "message": "Policy created successfully",
+            "policy": policy
+        })
+
+    except json.JSONDecodeError:
+        return JSONResponse({"error": "Invalid JSON in request body"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Error creating policy: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+async def save_policy_to_governance(policy):
+    """Save policy to the governance system"""
+    try:
+        # Load existing policies
+        policies_file = 'policies.json'
+        policies_data = {}
+
+        try:
+            with open(policies_file, 'r') as f:
+                policies_data = json.load(f)
+        except FileNotFoundError:
+            policies_data = {
+                "policies": [],
+                "policy_rules": {},
+                "approval_requests": [],
+                "approval_cache": {},
+                "last_updated": datetime.now(timezone.utc).isoformat()
+            }
+
+        # Add new policy to policies list
+        if "policies" not in policies_data:
+            policies_data["policies"] = []
+
+        policies_data["policies"].append(policy)
+
+        # Update policy rules for governance engine
+        if "policy_rules" not in policies_data:
+            policies_data["policy_rules"] = {}
+
+        rule_key = f"{policy['category']}_{policy['subject_type']}"
+        policies_data["policy_rules"][rule_key] = {
+            "action": policy['action'],
+            "approvers": policy['approvers'],
+            "risk_level": policy['risk_level'],
+            "conditions": {
+                "query_pattern": policy['query_pattern']
+            }
+        }
+
+        # Update timestamp
+        policies_data["last_updated"] = datetime.now(timezone.utc).isoformat()
+
+        # Save back to file
+        with open(policies_file, 'w') as f:
+            json.dump(policies_data, f, indent=2)
+
+        logger.info(f"Policy {policy['id']} saved to governance system")
+
+    except Exception as e:
+        logger.error(f"Error saving policy to governance: {e}")
+        raise
+
 @mcp.custom_route(path="/.well-known/oauth-authorization-server", methods=["GET"])
 async def oauth_discovery(request):
     """OAuth 2.1 discovery endpoint"""

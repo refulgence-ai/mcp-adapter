@@ -1827,7 +1827,368 @@
         }
         
         function saveAsPolicy() {
-            alert('💾 Query pattern saved as new governance policy!');
+            const query = document.getElementById('test-query').value;
+            const subjectType = document.getElementById('test-subject').value;
+
+            if (!query.trim()) {
+                alert('Please enter a test query first.');
+                return;
+            }
+
+            // Show the policy creation modal
+            showPolicyCreationModal(query, subjectType);
+        }
+
+        function showPolicyCreationModal(query, subjectType) {
+            // Create modal HTML if it doesn't exist
+            let modal = document.getElementById('policy-creation-modal');
+            if (!modal) {
+                modal = document.createElement('div');
+                modal.id = 'policy-creation-modal';
+                modal.className = 'modal';
+                modal.innerHTML = `
+                    <div class="modal-content" style="max-width: 800px;">
+                        <div class="modal-header">
+                            <h2>Create New Governance Policy</h2>
+                            <button class="modal-close" onclick="closeModal('policy-creation-modal')">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>Policy Name:</label>
+                                <input type="text" id="policy-name" placeholder="e.g., PII Data Access Control">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Policy Description:</label>
+                                <textarea id="policy-description" rows="3" placeholder="Describe what this policy does and when it applies..."></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Trigger Condition:</label>
+                                <div style="background: #f8fafc; padding: 12px; border-radius: 6px; font-family: monospace; font-size: 0.9em; border: 1px solid #e2e8f0;">
+                                    <strong>Query Pattern:</strong> ${query}<br>
+                                    <strong>Subject Type:</strong> ${subjectType}
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Policy Action:</label>
+                                <select id="policy-action">
+                                    <option value="require_approval">Require Approval</option>
+                                    <option value="block">Block Access</option>
+                                    <option value="allow_with_logging">Allow with Enhanced Logging</option>
+                                    <option value="conditional">Conditional Access</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group" id="approval-config" style="display: block;">
+                                <label>Required Approvers:</label>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="approver-ciso" checked>
+                                        <span>CISO</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="approver-business">
+                                        <span>Business Lead</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="approver-it">
+                                        <span>IT Admin</span>
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="approver-legal">
+                                        <span>Legal Team</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Risk Level:</label>
+                                <select id="policy-risk-level">
+                                    <option value="HIGH">High Risk</option>
+                                    <option value="MEDIUM">Medium Risk</option>
+                                    <option value="LOW">Low Risk</option>
+                                    <option value="CRITICAL">Critical Risk</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Policy Category:</label>
+                                <select id="policy-category">
+                                    <option value="data_access">Data Access Control</option>
+                                    <option value="pii_protection">PII Protection</option>
+                                    <option value="schema_changes">Schema Modifications</option>
+                                    <option value="bulk_operations">Bulk Data Operations</option>
+                                    <option value="ai_agent_control">AI Agent Control</option>
+                                    <option value="compliance">Compliance & Audit</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" id="policy-active" checked>
+                                    Activate policy immediately
+                                </label>
+                            </div>
+
+                            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                                <h4 style="margin-bottom: 12px; color: #374151;">Policy Preview</h4>
+                                <div id="policy-preview" style="background: #f8fafc; padding: 16px; border-radius: 8px; border: 1px solid #e2e8f0; font-size: 0.875rem;">
+                                    <!-- Policy preview will be generated here -->
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn-secondary" onclick="testPolicyDraft()">Test Policy</button>
+                            <button class="btn-primary" onclick="createPolicyFromDraft()">Create Policy</button>
+                            <button class="btn-secondary" onclick="closeModal('policy-creation-modal')">Cancel</button>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            }
+
+            // Pre-populate form with detected values
+            const policyName = generatePolicyName(query, subjectType);
+            const policyDescription = generatePolicyDescription(query, subjectType);
+
+            document.getElementById('policy-name').value = policyName;
+            document.getElementById('policy-description').value = policyDescription;
+
+            // Set up event listeners for dynamic preview
+            setupPolicyPreview();
+            updatePolicyPreview();
+
+            // Show modal
+            modal.classList.add('active');
+        }
+
+        function generatePolicyName(query, subjectType) {
+            const queryLower = query.toLowerCase();
+            if (queryLower.includes('ssn') || queryLower.includes('pii')) {
+                return 'PII Data Access Control';
+            } else if (queryLower.includes('drop') || queryLower.includes('delete')) {
+                return 'Destructive Operations Control';
+            } else if (queryLower.includes('select * ')) {
+                return 'Unrestricted Data Access Control';
+            } else {
+                return `${subjectType} Query Control Policy`;
+            }
+        }
+
+        function generatePolicyDescription(query, subjectType) {
+            const queryLower = query.toLowerCase();
+            if (queryLower.includes('ssn') || queryLower.includes('pii')) {
+                return 'Controls access to personally identifiable information (PII) to ensure compliance with data protection regulations.';
+            } else if (queryLower.includes('drop') || queryLower.includes('delete')) {
+                return 'Requires approval for destructive database operations that could result in data loss or schema changes.';
+            } else if (queryLower.includes('select * ')) {
+                return 'Controls unrestricted data access to prevent bulk data extraction and maintain data governance.';
+            } else {
+                return `Governance policy for ${subjectType} database queries to ensure appropriate access controls.`;
+            }
+        }
+
+        function setupPolicyPreview() {
+            const inputs = ['policy-name', 'policy-description', 'policy-action', 'policy-risk-level', 'policy-category'];
+            inputs.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('input', updatePolicyPreview);
+                    element.addEventListener('change', updatePolicyPreview);
+                }
+            });
+
+            // Handle approver checkboxes
+            const approverCheckboxes = ['approver-ciso', 'approver-business', 'approver-it', 'approver-legal'];
+            approverCheckboxes.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.addEventListener('change', updatePolicyPreview);
+                }
+            });
+
+            // Show/hide approval config based on action
+            const actionSelect = document.getElementById('policy-action');
+            if (actionSelect) {
+                actionSelect.addEventListener('change', function() {
+                    const approvalConfig = document.getElementById('approval-config');
+                    if (approvalConfig) {
+                        approvalConfig.style.display = this.value === 'require_approval' ? 'block' : 'none';
+                    }
+                    updatePolicyPreview();
+                });
+            }
+        }
+
+        function updatePolicyPreview() {
+            const preview = document.getElementById('policy-preview');
+            if (!preview) return;
+
+            const name = document.getElementById('policy-name').value || 'Untitled Policy';
+            const description = document.getElementById('policy-description').value || 'No description';
+            const action = document.getElementById('policy-action').value;
+            const riskLevel = document.getElementById('policy-risk-level').value;
+            const category = document.getElementById('policy-category').value;
+
+            let approvers = [];
+            if (action === 'require_approval') {
+                const approverMap = {
+                    'approver-ciso': 'CISO',
+                    'approver-business': 'Business Lead',
+                    'approver-it': 'IT Admin',
+                    'approver-legal': 'Legal Team'
+                };
+
+                Object.entries(approverMap).forEach(([id, label]) => {
+                    const checkbox = document.getElementById(id);
+                    if (checkbox && checkbox.checked) {
+                        approvers.push(label);
+                    }
+                });
+            }
+
+            const actionDescriptions = {
+                'require_approval': 'Require human approval before execution',
+                'block': 'Block access completely',
+                'allow_with_logging': 'Allow with enhanced audit logging',
+                'conditional': 'Apply conditional access rules'
+            };
+
+            preview.innerHTML = `
+                <strong>Policy:</strong> ${name}<br>
+                <strong>Description:</strong> ${description}<br>
+                <strong>Category:</strong> ${category.replace('_', ' ').toUpperCase()}<br>
+                <strong>Risk Level:</strong> ${riskLevel}<br>
+                <strong>Action:</strong> ${actionDescriptions[action] || action}<br>
+                ${approvers.length > 0 ? `<strong>Required Approvers:</strong> ${approvers.join(', ')}<br>` : ''}
+                <strong>Status:</strong> ${document.getElementById('policy-active').checked ? 'Active' : 'Draft'}
+            `;
+        }
+
+        function testPolicyDraft() {
+            const name = document.getElementById('policy-name').value;
+            const query = document.getElementById('test-query').value;
+
+            // Simulate policy testing
+            const testResult = {
+                policy: name,
+                query: query,
+                result: 'APPROVAL_REQUIRED',
+                approvers: ['CISO', 'Business Lead'],
+                riskScore: 8.5,
+                violations: ['PII column access', 'Unrestricted SELECT']
+            };
+
+            const testResultHtml = `
+                <strong>Policy Test Results</strong><br>
+                Policy: ${testResult.policy}<br>
+                Query: ${testResult.query.substring(0, 50)}...<br>
+                Result: ${testResult.result}<br>
+                Risk Score: ${testResult.riskScore}/10<br>
+                Required Approvers: ${testResult.approvers.join(', ')}<br>
+                Violations: ${testResult.violations.join(', ')}
+            `;
+
+            // Update the test result in the main interface
+            const testResultDiv = document.getElementById('test-result');
+            if (testResultDiv) {
+                testResultDiv.style.display = 'block';
+                testResultDiv.querySelector('div').innerHTML = testResultHtml;
+            }
+
+            alert('✅ Policy test completed! Check the test results in the Overview tab.');
+        }
+
+        async function createPolicyFromDraft() {
+            const policyData = {
+                name: document.getElementById('policy-name').value,
+                description: document.getElementById('policy-description').value,
+                action: document.getElementById('policy-action').value,
+                risk_level: document.getElementById('policy-risk-level').value,
+                category: document.getElementById('policy-category').value,
+                active: document.getElementById('policy-active').checked,
+                query_pattern: document.getElementById('test-query').value,
+                subject_type: document.getElementById('test-subject').value,
+                approvers: getSelectedApprovers()
+            };
+
+            try {
+                // Simulate API call to create policy
+                const response = await simulateCreatePolicy(policyData);
+
+                if (response.success) {
+                    alert(`✅ Policy "${policyData.name}" created successfully!\n\nPolicy ID: ${response.policy_id}\nStatus: ${policyData.active ? 'Active' : 'Draft'}`);
+                    closeModal('policy-creation-modal');
+
+                    // Refresh policy count in stats
+                    updatePolicyCount();
+                } else {
+                    alert(`❌ Failed to create policy: ${response.error}`);
+                }
+            } catch (error) {
+                alert(`❌ Error creating policy: ${error.message}`);
+            }
+        }
+
+        function getSelectedApprovers() {
+            const approvers = [];
+            const approverMap = {
+                'approver-ciso': 'CISO',
+                'approver-business': 'BUSINESS_LEAD',
+                'approver-it': 'IT_ADMIN',
+                'approver-legal': 'LEGAL_TEAM'
+            };
+
+            Object.entries(approverMap).forEach(([id, value]) => {
+                const checkbox = document.getElementById(id);
+                if (checkbox && checkbox.checked) {
+                    approvers.push(value);
+                }
+            });
+
+            return approvers;
+        }
+
+        async function simulateCreatePolicy(policyData) {
+            try {
+                // Make real API call to create policy
+                const response = await fetch('/admin/api/policies', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(policyData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    return { success: false, error: error.error || 'Failed to create policy' };
+                }
+
+                const result = await response.json();
+                return result;
+
+            } catch (error) {
+                console.error('Error creating policy:', error);
+                return { success: false, error: error.message || 'Network error' };
+            }
+        }
+
+        function updatePolicyCount() {
+            const policyCountElement = document.getElementById('policy-count');
+            if (policyCountElement) {
+                const currentCount = parseInt(policyCountElement.textContent) || 0;
+                policyCountElement.textContent = currentCount + 1;
+            }
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+            }
         }
         
         function exportUserReport(userId) {
@@ -2033,25 +2394,31 @@
             document.getElementById('demo-popup-content').textContent = step.content;
             document.getElementById('demo-step-counter').textContent = `${demoTourStep + 1} of ${demoTourSteps.length}`;
             
-            // Position popup
+            // Position popup with fixed dimensions to prevent jumping
             const rect = targetElement.getBoundingClientRect();
-            const popupRect = popup.getBoundingClientRect();
-            
+            const popupWidth = 400; // Fixed width
+            const popupHeight = 200; // Estimated height
+
             let top, left;
             if (step.position === 'bottom') {
                 top = rect.bottom + 20;
-                left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+                left = rect.left + (rect.width / 2) - (popupWidth / 2);
             } else {
-                top = rect.top - popupRect.height - 20;
-                left = rect.left + (rect.width / 2) - (popupRect.width / 2);
+                top = rect.top - popupHeight - 20;
+                left = rect.left + (rect.width / 2) - (popupWidth / 2);
             }
-            
-            // Keep popup on screen
-            top = Math.max(20, Math.min(top, window.innerHeight - popupRect.height - 20));
-            left = Math.max(20, Math.min(left, window.innerWidth - popupRect.width - 20));
-            
+
+            // Keep popup on screen with padding
+            const padding = 20;
+            top = Math.max(padding, Math.min(top, window.innerHeight - popupHeight - padding));
+            left = Math.max(padding, Math.min(left, window.innerWidth - popupWidth - padding));
+
+            // Apply position with stable values
+            popup.style.position = 'fixed';
             popup.style.top = top + 'px';
             popup.style.left = left + 'px';
+            popup.style.width = popupWidth + 'px';
+            popup.style.maxHeight = popupHeight + 'px';
             
             // Show overlay
             overlay.style.display = 'block';

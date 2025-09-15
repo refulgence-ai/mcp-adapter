@@ -13,8 +13,23 @@
     "tool_name": null
   },
   {
-    "id": "event_1757965946014",
-    "timestamp": "2025-09-15T19:52:26.014176+00:00",
+    "id": "event_1757966277863",
+    "timestamp": "2025-09-15T19:57:57.863369+00:00",
+    "type": "security_violation",
+    "severity": "warning",
+    "message": "Security event: policy_created",
+    "details": {
+      "policy_id": "pol_1757966277_9932",
+      "policy_name": "Test PII Policy",
+      "risk_level": "HIGH",
+      "category": "pii_protection"
+    },
+    "subject_id": null,
+    "tool_name": null
+  },
+  {
+    "id": "event_1757966343949",
+    "timestamp": "2025-09-15T19:59:03.949330+00:00",
     "type": "query_blocked",
     "severity": "warning",
     "message": "Query blocked: SELECT * FROM users...",
@@ -26,8 +41,8 @@
     "tool_name": null
   },
   {
-    "id": "event_1757965946014",
-    "timestamp": "2025-09-15T19:52:26.014220+00:00",
+    "id": "event_1757966343949",
+    "timestamp": "2025-09-15T19:59:03.949365+00:00",
     "type": "approval_requested",
     "severity": "info",
     "message": "Approval requested for redshift_execute_query",
@@ -40,8 +55,8 @@
     "tool_name": "redshift_execute_query"
   },
   {
-    "id": "event_1757965946036",
-    "timestamp": "2025-09-15T19:52:26.036964+00:00",
+    "id": "event_1757966343971",
+    "timestamp": "2025-09-15T19:59:03.971914+00:00",
     "type": "query_blocked",
     "severity": "critical",
     "message": "Query blocked: DROP TABLE customers...",
