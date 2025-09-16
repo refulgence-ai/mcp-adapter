@@ -19,7 +19,7 @@ class TestRefulgenceAdminPages:
             assert response.status_code == 200
             # Check for key UI elements
             assert "Refulgence" in response.text
-            assert "Demo Tour" in response.text
+            assert "startContextualTour" in response.text
     
     @pytest.mark.asyncio
     async def test_drill_down_page_loads(self):

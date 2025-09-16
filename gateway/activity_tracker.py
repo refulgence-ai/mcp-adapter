@@ -97,15 +97,7 @@ class ActivityTracker:
         self.events_file = f'{self.data_dir}/activity_events.json'
 
         # Ensure data directory exists (gracefully handle read-only filesystems in tests)
-        try:
-            os.makedirs(self.data_dir, exist_ok=True)
-            # Load existing events
-            self._load_persistent_events()
-        except (OSError, PermissionError):
-            # In test environments or read-only filesystems, skip persistence
-            logger.warning(f"Cannot create data directory {self.data_dir} - persistence disabled")
-        
-        # Statistics
+        # Initialize statistics first (needed before loading events)
         self.stats = {
             "total_queries": 0,
             "blocked_queries": 0,
@@ -115,6 +107,14 @@ class ActivityTracker:
             "queries_per_hour": 0,
             "last_hour_queries": deque(maxlen=3600)  # Track last hour
         }
+
+        try:
+            os.makedirs(self.data_dir, exist_ok=True)
+            # Load existing events
+            self._load_persistent_events()
+        except (OSError, PermissionError):
+            # In test environments or read-only filesystems, skip persistence
+            logger.warning(f"Cannot create data directory {self.data_dir} - persistence disabled")
     
     async def track_event(
         self,

@@ -20,6 +20,7 @@ All endpoints and tool calls are MCP-compliant (no legacy fields).
 import os
 import logging
 import json
+import random
 from typing import Dict, Any, List, Optional
 from datetime import datetime, timezone
 from fastmcp import FastMCP
@@ -977,16 +978,17 @@ async def admin_dashboard(request):
     """Refulgence admin dashboard for governance and policy management"""
     try:
         # Check for enhanced UI flag
-        ui_mode = os.getenv('UI_MODE', 'comprehensive').lower()
+        ui_mode = os.getenv('UI_MODE', 'v2').lower()
         
         template_map = {
             'basic': 'admin.html',
-            'enhanced': 'admin_enhanced.html', 
+            'enhanced': 'admin_enhanced.html',
             'enhanced_real': 'admin_enhanced_real.html',
-            'comprehensive': 'admin_comprehensive.html'
+            'comprehensive': 'admin_comprehensive.html',
+            'v2': 'admin_comprehensive_v2.html'
         }
-        
-        template = template_map.get(ui_mode, 'admin_comprehensive.html')
+
+        template = template_map.get(ui_mode, 'admin_comprehensive_v2.html')
         
         with open(f'templates/{template}', 'r') as f:
             html_content = f.read()
@@ -1004,6 +1006,26 @@ async def admin_dashboard(request):
         </body>
         </html>
         """)
+
+@mcp.custom_route(path="/admin/legacy", methods=["GET"])
+async def admin_dashboard_legacy(request):
+    """Legacy admin dashboard (comprehensive version)"""
+    try:
+        with open('templates/admin_comprehensive.html', 'r') as f:
+            html_content = f.read()
+        return HTMLResponse(content=html_content)
+    except FileNotFoundError:
+        return HTMLResponse(content="""
+        <!DOCTYPE html>
+        <html>
+        <head><title>Legacy Admin Dashboard - Template Missing</title></head>
+        <body>
+            <h1>Legacy Admin Dashboard</h1>
+            <p>Template file missing.</p>
+            <p><a href="/admin">Try New Admin Dashboard</a></p>
+        </body>
+        </html>
+        """, status_code=500)
 
 @mcp.custom_route(path="/admin/drill-down", methods=["GET"])
 async def admin_drill_down_dashboard(request):
@@ -1608,6 +1630,255 @@ async def start_simulation_endpoint(request):
         logger.error(f"Error starting simulation: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
 
+@mcp.custom_route(path="/admin/api/debug-simulation", methods=["POST"])
+async def debug_simulation_endpoint(request):
+    """Debug endpoint to manually trigger diverse activity types"""
+    try:
+        if user_store.demo_mode:
+            users = await user_store.get_all_users()
+            active_users = [u for u in users if u.status == UserStatus.ACTIVE]
+
+            if active_users:
+                user = random.choice(active_users)
+
+                # Generate diverse event types with weighted probabilities
+                event_type_roll = random.random()
+
+                if event_type_roll < 0.05:  # 5% critical security events
+                    await generate_critical_security_event(user)
+                    event_type = "critical_security"
+                elif event_type_roll < 0.15:  # 10% warning events
+                    await generate_warning_event(user)
+                    event_type = "warning"
+                elif event_type_roll < 0.25:  # 10% approval requests
+                    await generate_approval_request(user)
+                    event_type = "approval_request"
+                else:  # 75% normal queries
+                    await user_store._simulate_user_query(user, is_alert=False)
+                    event_type = "normal_query"
+
+                return JSONResponse({
+                    "success": True,
+                    "message": f"Generated {event_type} for {user.name}",
+                    "user_id": user.id,
+                    "event_type": event_type
+                })
+            else:
+                return JSONResponse({
+                    "success": False,
+                    "message": "No active users found"
+                })
+        else:
+            return JSONResponse({
+                "success": False,
+                "message": "Debug simulation only available in demo mode"
+            })
+    except Exception as e:
+        logger.error(f"Error in debug simulation: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+async def generate_critical_security_event(user):
+    """Generate critical security events"""
+    from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+    critical_events = [
+        {
+            "type": ActivityType.QUERY_BLOCKED,
+            "message": f"🚨 CRITICAL: Unauthorized PII access attempt by {user.name}",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "query": "SELECT ssn, credit_card FROM customers LIMIT 1000",
+                "threat_level": "CRITICAL",
+                "blocked_reason": "PII_ACCESS_VIOLATION",
+                "ip_address": f"192.168.1.{random.randint(100, 255)}",
+                "simulated": True
+            }
+        },
+        {
+            "type": ActivityType.AGENT_DISCONNECTED,
+            "message": f"🚨 SECURITY: Suspicious agent behavior detected for {user.name}",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "threat_type": "ANOMALOUS_BEHAVIOR",
+                "risk_score": random.randint(85, 99),
+                "patterns_detected": ["rapid_queries", "privilege_escalation", "data_exfiltration"],
+                "auto_disconnect": True,
+                "simulated": True
+            }
+        }
+    ]
+
+    event = random.choice(critical_events)
+    await activity_tracker.track_event(
+        activity_type=event["type"],
+        message=event["message"],
+        severity=ActivitySeverity.CRITICAL,
+        details=event["details"],
+        subject_id=user.id
+    )
+
+async def generate_warning_event(user):
+    """Generate warning-level events"""
+    from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+    warning_events = [
+        {
+            "type": ActivityType.SCHEMA_CHANGE_ATTEMPTED,
+            "message": f"⚠️ Schema modification blocked: {user.name} attempted restricted database changes",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "violation_type": "SCHEMA_MODIFICATION",
+                "attempted_action": "ALTER TABLE users ADD COLUMN admin_access BOOLEAN",
+                "policy_rule": "SCHEMA_MODIFY_RESTRICTED",
+                "auto_blocked": True,
+                "simulated": True
+            }
+        },
+        {
+            "type": ActivityType.APPROVAL_DENIED,
+            "message": f"⚠️ Access denied: {user.name} lacks permission for database admin operations",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "requested_permission": "database_admin",
+                "denial_reason": "INSUFFICIENT_PRIVILEGES",
+                "escalation_available": True,
+                "simulated": True
+            }
+        },
+        {
+            "type": ActivityType.RATE_LIMIT_WARNING,
+            "message": f"⚠️ Rate limit warning: {user.name} approaching query threshold",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "current_rate": f"{random.randint(85, 99)} queries/minute",
+                "limit": "100 queries/minute",
+                "threshold_percentage": random.randint(85, 95),
+                "action_recommended": "throttle_or_review",
+                "simulated": True
+            }
+        },
+        {
+            "type": ActivityType.PII_ACCESS_ATTEMPTED,
+            "message": f"⚠️ PII access flagged: {user.name} accessed sensitive customer data",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "data_type": "customer_ssn_partial",
+                "access_pattern": "bulk_query",
+                "compliance_flag": "review_required",
+                "approver_notified": True,
+                "simulated": True
+            }
+        }
+    ]
+
+    event = random.choice(warning_events)
+    await activity_tracker.track_event(
+        activity_type=event["type"],
+        message=event["message"],
+        severity=ActivitySeverity.WARNING,
+        details=event["details"],
+        subject_id=user.id
+    )
+
+async def generate_approval_request(user):
+    """Generate approval request events"""
+    from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+    approval_requests = [
+        {
+            "type": ActivityType.APPROVAL_REQUESTED,
+            "message": f"⚖️ Approval required: {user.name} requesting PII data export",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "requested_action": "export_customer_pii",
+                "business_justification": "Compliance audit for Q4 2024",
+                "data_scope": "customer_emails_and_addresses",
+                "approvers_required": ["security_analyst", "data_protection_officer"],
+                "urgency": "normal",
+                "simulated": True
+            }
+        },
+        {
+            "type": ActivityType.APPROVAL_REQUESTED,
+            "message": f"⚖️ Multi-stakeholder approval: {user.name} requesting production database access",
+            "details": {
+                "user_id": user.id,
+                "user_name": user.name,
+                "user_role": user.role.value,
+                "requested_permission": "production_database_write",
+                "purpose": "Emergency hotfix deployment",
+                "risk_level": "HIGH",
+                "approvers_required": ["security_analyst", "database_admin", "team_lead"],
+                "auto_expire": "2_hours",
+                "simulated": True
+            }
+        }
+    ]
+
+    event = random.choice(approval_requests)
+    await activity_tracker.track_event(
+        activity_type=event["type"],
+        message=event["message"],
+        severity=ActivitySeverity.INFO,
+        details=event["details"],
+        subject_id=user.id
+    )
+
+@mcp.custom_route(path="/admin/api/generate-critical-event", methods=["POST"])
+async def generate_critical_event_endpoint(request):
+    """Force generate a critical security event for demo"""
+    try:
+        if user_store.demo_mode:
+            users = await user_store.get_all_users()
+            active_users = [u for u in users if u.status == UserStatus.ACTIVE]
+
+            if active_users:
+                user = random.choice(active_users)
+                await generate_critical_security_event(user)
+                return JSONResponse({
+                    "success": True,
+                    "message": f"Generated critical security event for {user.name}",
+                    "event_type": "critical_security"
+                })
+        return JSONResponse({"error": "Demo mode required"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Error generating critical event: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+@mcp.custom_route(path="/admin/api/generate-warning-event", methods=["POST"])
+async def generate_warning_event_endpoint(request):
+    """Force generate a warning event for demo"""
+    try:
+        if user_store.demo_mode:
+            users = await user_store.get_all_users()
+            active_users = [u for u in users if u.status == UserStatus.ACTIVE]
+
+            if active_users:
+                user = random.choice(active_users)
+                await generate_warning_event(user)
+                return JSONResponse({
+                    "success": True,
+                    "message": f"Generated warning event for {user.name}",
+                    "event_type": "warning"
+                })
+        return JSONResponse({"error": "Demo mode required"}, status_code=400)
+    except Exception as e:
+        logger.error(f"Error generating warning event: {e}")
+        return JSONResponse({"error": str(e)}, status_code=500)
+
 async def save_policy_to_governance(policy):
     """Save policy to the governance system"""
     try:
@@ -1796,8 +2067,28 @@ if __name__ == "__main__":
     logger.info(f"Starting MCP Adapter on port {port}")
     logger.info(f"Debug mode: {debug}")
 
-    # Start user simulation once event loop is available
-    user_store.start_simulation()
+    # Check if simulation should auto-start (user_store already reads REFULGENCE_DEMO_MODE)
+    if user_store.demo_mode:
+        logger.info("REFULGENCE_DEMO_MODE=true: High-frequency activity simulation will auto-start")
+
+        # Use a simple background thread to start simulation after server is ready
+        import threading
+        import time
+        def start_simulation_delayed():
+            time.sleep(2)  # Wait for server to be ready
+            try:
+                import asyncio
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                loop.run_until_complete(user_store.start_simulation_async())
+                loop.close()
+                logger.info("Auto-started high-frequency activity simulation")
+            except Exception as e:
+                logger.error(f"Failed to auto-start simulation: {e}")
+
+        threading.Thread(target=start_simulation_delayed, daemon=True).start()
+    else:
+        logger.info("REFULGENCE_DEMO_MODE=false: Simulation will not auto-start")
 
     # Run the MCP server (will serve MCP at /mcp and dashboard at /)
     mcp.run(transport="http", host="0.0.0.0", port=port)

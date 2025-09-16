@@ -525,6 +525,10 @@
                 <div class="filter-section">
                     <h4>Event Type</h4>
                     <div class="filter-option">
+                        <input type="checkbox" id="filter-query-executed" checked>
+                        <label for="filter-query-executed">Query Executed</label>
+                    </div>
+                    <div class="filter-option">
                         <input type="checkbox" id="filter-query-blocked" checked>
                         <label for="filter-query-blocked">Query Blocked</label>
                     </div>
@@ -533,12 +537,52 @@
                         <label for="filter-approval-requested">Approval Requested</label>
                     </div>
                     <div class="filter-option">
-                        <input type="checkbox" id="filter-vote-submitted" checked>
-                        <label for="filter-vote-submitted">Vote Submitted</label>
+                        <input type="checkbox" id="filter-approval-granted" checked>
+                        <label for="filter-approval-granted">Approval Granted</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-approval-denied" checked>
+                        <label for="filter-approval-denied">Approval Denied</label>
                     </div>
                     <div class="filter-option">
                         <input type="checkbox" id="filter-policy-created" checked>
                         <label for="filter-policy-created">Policy Created</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-policy-updated" checked>
+                        <label for="filter-policy-updated">Policy Updated</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-agent-connected" checked>
+                        <label for="filter-agent-connected">Agent Connected</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-agent-disconnected" checked>
+                        <label for="filter-agent-disconnected">Agent Disconnected</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-security-violation" checked>
+                        <label for="filter-security-violation">Security Violation</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-pii-access-attempted" checked>
+                        <label for="filter-pii-access-attempted">PII Access Attempted</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-schema-change-attempted" checked>
+                        <label for="filter-schema-change-attempted">Schema Change Attempted</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-emergency-block" checked>
+                        <label for="filter-emergency-block">Emergency Block</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-rate-limit-warning" checked>
+                        <label for="filter-rate-limit-warning">Rate Limit Warning</label>
+                    </div>
+                    <div class="filter-option">
+                        <input type="checkbox" id="filter-audit-exported" checked>
+                        <label for="filter-audit-exported">Audit Exported</label>
                     </div>
                 </div>
                 
@@ -662,11 +706,21 @@
             
             // Get event type filters
             const eventTypeFilters = {
+                'query_executed': document.getElementById('filter-query-executed').checked,
                 'query_blocked': document.getElementById('filter-query-blocked').checked,
                 'approval_requested': document.getElementById('filter-approval-requested').checked,
-                'approval_granted': document.getElementById('filter-vote-submitted').checked,
-                'approval_denied': document.getElementById('filter-vote-submitted').checked,
-                'policy_created': document.getElementById('filter-policy-created').checked
+                'approval_granted': document.getElementById('filter-approval-granted').checked,
+                'approval_denied': document.getElementById('filter-approval-denied').checked,
+                'policy_created': document.getElementById('filter-policy-created').checked,
+                'policy_updated': document.getElementById('filter-policy-updated').checked,
+                'agent_connected': document.getElementById('filter-agent-connected').checked,
+                'agent_disconnected': document.getElementById('filter-agent-disconnected').checked,
+                'security_violation': document.getElementById('filter-security-violation').checked,
+                'pii_access_attempted': document.getElementById('filter-pii-access-attempted').checked,
+                'schema_change_attempted': document.getElementById('filter-schema-change-attempted').checked,
+                'emergency_block': document.getElementById('filter-emergency-block').checked,
+                'rate_limit_warning': document.getElementById('filter-rate-limit-warning').checked,
+                'audit_exported': document.getElementById('filter-audit-exported').checked
             };
             
             // Apply time filter

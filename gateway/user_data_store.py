@@ -312,15 +312,26 @@ class UserDataStore:
 
     async def start_simulation_async(self):
         """Async version to start simulation when event loop is available"""
-        if self.demo_mode and not hasattr(self, '_simulation_started'):
-            asyncio.create_task(self._simulate_user_activity())
+        if self.demo_mode:
+            # Check if simulation is already running
+            if hasattr(self, '_simulation_task') and not self._simulation_task.done():
+                logger.info("Simulation already running")
+                return
+
+            # Start new simulation task
+            self._simulation_task = asyncio.create_task(self._simulate_user_activity())
             self._simulation_started = True
             logger.info("High-frequency user activity simulation started (10-100 events/sec)")
 
     async def _simulate_user_activity(self):
         """Simulate high-frequency user activity (10-100 events per second)"""
+        logger.info("Starting high-frequency activity simulation loop")
+        loop_count = 0
         while self.demo_mode:
             try:
+                loop_count += 1
+                if loop_count % 100 == 0:  # Log every 100 loops
+                    logger.info(f"Simulation loop running: {loop_count} iterations")
                 # Generate bursts of activity to simulate realistic enterprise usage
                 # Base sleep time: 0.01-0.1 seconds (10-100 events per second)
                 base_sleep = random.uniform(0.01, 0.1)
@@ -342,6 +353,8 @@ class UserDataStore:
                 # Pick multiple users for concurrent activity simulation
                 active_users = [u for u in self.users.values() if u.status == UserStatus.ACTIVE]
                 if not active_users:
+                    logger.warning(f"No active users found for simulation (total users: {len(self.users)})")
+                    await asyncio.sleep(1)  # Wait before retrying
                     continue
 
                 # Generate 1-5 concurrent activities
@@ -351,23 +364,26 @@ class UserDataStore:
                 for _ in range(concurrent_count):
                     user = random.choice(active_users)
 
-                    # Most traffic is normal queries (95%), small fraction are alerts (5%)
-                    if random.random() < 0.95:
-                        # Normal traffic
-                        if random.random() < 0.8:  # 80% queries, 20% other activities
-                            tasks.append(self._simulate_user_query(user, is_alert=False))
-                        else:
-                            tasks.append(self._simulate_other_activity(user, is_alert=False))
-                    else:
-                        # Alert traffic (5% of total)
-                        if random.random() < 0.7:  # 70% alert queries, 30% other alert activities
-                            tasks.append(self._simulate_user_query(user, is_alert=True))
-                        else:
-                            tasks.append(self._simulate_other_activity(user, is_alert=True))
+                    # Generate diverse event types with realistic distributions
+                    event_type_roll = random.random()
+
+                    if event_type_roll < 0.02:  # 2% critical security events
+                        tasks.append(self._simulate_critical_security_event(user))
+                    elif event_type_roll < 0.08:  # 6% warning events
+                        tasks.append(self._simulate_warning_event(user))
+                    elif event_type_roll < 0.15:  # 7% approval requests
+                        tasks.append(self._simulate_approval_request(user))
+                    elif event_type_roll < 0.90:  # 75% normal queries
+                        tasks.append(self._simulate_user_query(user, is_alert=False))
+                    else:  # 10% other activities (governance, policy updates)
+                        tasks.append(self._simulate_other_activity(user, is_alert=False))
 
                 # Execute concurrent activities
                 if tasks:
-                    await asyncio.gather(*tasks)
+                    try:
+                        await asyncio.gather(*tasks)
+                    except Exception as e:
+                        logger.error(f"Error executing concurrent tasks: {e}")
 
                 # Occasional system events (2% of cycles)
                 if random.random() < 0.02:
@@ -394,6 +410,8 @@ class UserDataStore:
             except Exception as e:
                 logger.error(f"Error in user activity simulation: {e}")
                 await asyncio.sleep(5)  # Short wait on error
+
+        logger.warning("Simulation loop exited - demo_mode may have changed")
 
     async def _simulate_user_query(self, user: User, is_alert: bool = False):
         """Simulate a single user query"""
@@ -920,6 +938,149 @@ class UserDataStore:
     async def _save_async(self):
         """Async wrapper for save operation"""
         await asyncio.get_event_loop().run_in_executor(None, self._save_persistent_data)
+
+    async def _simulate_critical_security_event(self, user: User):
+        """Simulate critical security events automatically"""
+        from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+        critical_events = [
+            {
+                "type": ActivityType.QUERY_BLOCKED,
+                "message": f"🚨 CRITICAL: Unauthorized PII access attempt by {user.name}",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_role": user.role.value,
+                    "query": "SELECT ssn, credit_card FROM customers LIMIT 1000",
+                    "threat_level": "CRITICAL",
+                    "blocked_reason": "PII_ACCESS_VIOLATION",
+                    "ip_address": f"192.168.1.{random.randint(100, 255)}",
+                    "simulated": True
+                }
+            },
+            {
+                "type": ActivityType.SECURITY_VIOLATION,
+                "message": f"🚨 SECURITY: Suspicious behavior detected for {user.name}",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "threat_type": "ANOMALOUS_BEHAVIOR",
+                    "risk_score": random.randint(85, 99),
+                    "patterns_detected": ["rapid_queries", "privilege_escalation"],
+                    "auto_disconnect": True,
+                    "simulated": True
+                }
+            }
+        ]
+
+        event = random.choice(critical_events)
+        await activity_tracker.track_event(
+            activity_type=event["type"],
+            message=event["message"],
+            severity=ActivitySeverity.CRITICAL,
+            details=event["details"],
+            subject_id=user.id
+        )
+
+    async def _simulate_warning_event(self, user: User):
+        """Simulate warning-level events automatically"""
+        from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+        warning_events = [
+            {
+                "type": ActivityType.SCHEMA_CHANGE_ATTEMPTED,
+                "message": f"⚠️ Schema modification blocked: {user.name} attempted restricted database changes",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_role": user.role.value,
+                    "attempted_action": "ALTER TABLE users ADD COLUMN admin_access BOOLEAN",
+                    "policy_rule": "SCHEMA_MODIFY_RESTRICTED",
+                    "auto_blocked": True,
+                    "simulated": True
+                }
+            },
+            {
+                "type": ActivityType.RATE_LIMIT_WARNING,
+                "message": f"⚠️ Rate limit warning: {user.name} approaching query threshold",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_role": user.role.value,
+                    "current_rate": f"{random.randint(85, 99)} queries/minute",
+                    "limit": "100 queries/minute",
+                    "threshold_percentage": random.randint(85, 95),
+                    "simulated": True
+                }
+            },
+            {
+                "type": ActivityType.PII_ACCESS_ATTEMPTED,
+                "message": f"⚠️ PII access flagged: {user.name} accessed sensitive customer data",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_role": user.role.value,
+                    "data_type": "customer_ssn_partial",
+                    "compliance_flag": "review_required",
+                    "approver_notified": True,
+                    "simulated": True
+                }
+            }
+        ]
+
+        event = random.choice(warning_events)
+        await activity_tracker.track_event(
+            activity_type=event["type"],
+            message=event["message"],
+            severity=ActivitySeverity.WARNING,
+            details=event["details"],
+            subject_id=user.id
+        )
+
+    async def _simulate_approval_request(self, user: User):
+        """Simulate approval request events automatically"""
+        from activity_tracker import activity_tracker, ActivityType, ActivitySeverity
+
+        approval_requests = [
+            {
+                "type": ActivityType.APPROVAL_REQUESTED,
+                "message": f"⚖️ Approval required: {user.name} requesting PII data export",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_role": user.role.value,
+                    "requested_action": "export_customer_pii",
+                    "business_justification": "Compliance audit for Q4 2024",
+                    "approvers_required": ["security_analyst", "data_protection_officer"],
+                    "urgency": "normal",
+                    "simulated": True
+                }
+            },
+            {
+                "type": ActivityType.APPROVAL_REQUESTED,
+                "message": f"⚖️ Multi-stakeholder approval: {user.name} requesting production database access",
+                "details": {
+                    "user_id": user.id,
+                    "user_name": user.name,
+                    "user_role": user.role.value,
+                    "requested_permission": "production_database_write",
+                    "purpose": "Emergency hotfix deployment",
+                    "risk_level": "HIGH",
+                    "approvers_required": ["security_analyst", "database_admin"],
+                    "auto_expire": "2_hours",
+                    "simulated": True
+                }
+            }
+        ]
+
+        event = random.choice(approval_requests)
+        await activity_tracker.track_event(
+            activity_type=event["type"],
+            message=event["message"],
+            severity=ActivitySeverity.INFO,
+            details=event["details"],
+            subject_id=user.id
+        )
 
 # Global store instance
 user_store = UserDataStore()
